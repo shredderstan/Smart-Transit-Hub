@@ -1,4 +1,4 @@
-package com.smartTransit.Security;
+package com.backend.smarttransithub.Security;
 
 import java.io.IOException;
 import java.util.List;
