@@ -3,9 +3,13 @@ package com.backend.smarttransithub.controllers;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -50,6 +54,31 @@ public class AdminController {
     	
     	return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserRequest request)
+    {
+    	User user = adminService.updateUser(id, request);
+    	UserResponse response = new UserResponse();
+
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setFullName(user.getFullName());
+        response.setPhoneNumber(user.getPhoneNumber());
+        response.setRole(user.getRole());
+        response.setIsActive(user.getIsActive());
+
+        return ResponseEntity.ok(response);
+    }
+    
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id)
+    {
+    	adminService.deleteUser(id);
+    	
+    	return ResponseEntity.status(HttpStatus.NO_CONTENT).body("User deleted");
+    }
+    
     
 
 }

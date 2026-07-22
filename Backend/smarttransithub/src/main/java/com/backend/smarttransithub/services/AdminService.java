@@ -11,5 +11,7 @@ import com.backend.smarttransithub.enums.Role;
 public interface AdminService {
 	List<User> getUsers(Role role);
 	User createUser(UserRequest request);
+	User updateUser(Long id, UserRequest request);
+	void deleteUser(Long id);
 	
 }
