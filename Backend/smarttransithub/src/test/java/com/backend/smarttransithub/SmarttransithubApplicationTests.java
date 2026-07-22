@@ -1,10 +1,10 @@
-package com.smartTransit;
+package com.backend.smarttransithub;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BackendAdityaApplicationTests {
+class SmarttransithubApplicationTests {
 
 	@Test
 	void contextLoads() {

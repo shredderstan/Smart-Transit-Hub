@@ -1,13 +1,13 @@
-package com.smartTransit;
+package com.backend.smarttransithub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class BackendAdityaApplication {
+public class SmarttransithubApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(BackendAdityaApplication.class, args);
+		SpringApplication.run(SmarttransithubApplication.class, args);
 	}
 
 }
