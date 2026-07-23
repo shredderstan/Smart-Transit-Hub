@@ -2,7 +2,6 @@ package com.backend.smarttransithub.services;
 
 import java.util.List;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 //import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 public class AdminServiceImpl implements AdminService{
 
 	private final UserRepository userRepo;
-	private final PasswordEncoder passwordEncoder;
 
 	@Override
 	public List<User> getUsers(Role role) {
@@ -36,8 +34,7 @@ public class AdminServiceImpl implements AdminService{
 		User user = new User();
 		
 		user.setUsername(request.getUsername());
-		String hashedPassword = passwordEncoder.encode(request.getPassword());
-		user.setPasswordHash(hashedPassword);
+		user.setPasswordHash(request.getPassword());
 		user.setFullName(request.getFullName());
 		user.setPhoneNumber(request.getPhoneNumber());
 		user.setRole(request.getRole());
