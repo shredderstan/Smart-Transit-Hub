@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class RedusTrackingService {
+public class RedisTrackingService {
 	private final RedisTemplate<String, String> redisTemplate;
 	
 	private static final Duration TRIP_KEYS_TTL = Duration.ofHours(6);
@@ -73,7 +73,11 @@ public class RedusTrackingService {
 	}
 	
 	public Long getActiveTripId(Long busId) {
-		return Long.parseLong(redisTemplate.opsForValue().get("bus:active-trip:"+ busId));
+		String value =
+		        redisTemplate.opsForValue()
+		                     .get("bus:active-trip:" + busId);
+
+		    return value == null ? null : Long.parseLong(value);
 	}
 	
 	public void terminateTripTracking(Long tripId, Long busId) {
