@@ -28,6 +28,7 @@ public class Bus extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "bus_id")
 	private Long id;
+	
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "driver_user_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_bus_driver"))
 	private User driver;
