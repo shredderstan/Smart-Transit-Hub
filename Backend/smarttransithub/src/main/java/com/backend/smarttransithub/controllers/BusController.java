@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,7 +31,7 @@ public class BusController {
 	@GetMapping("/buses")
 	public ResponseEntity<?> getBuses() {
 
-		List<BusResponse> response = new ArrayList<>();
+	    List<BusResponse> response = new ArrayList<>();
 
 	    for (Bus bus : adminService.getBuses()) {
 
@@ -41,20 +42,20 @@ public class BusController {
 	        dto.setPlateNumber(bus.getPlateNumber());
 	        dto.setCapacity(bus.getCapacity());
 
-	        if (bus.getDriver() != null) {
-	            dto.setDriverId(bus.getDriver().getId());
-	            dto.setDriverName(bus.getDriver().getFullName());
-	        }
+	        dto.setDriverId(bus.getDriver().getId());
+	        dto.setDriverName(bus.getDriver().getFullName());
+
+	        dto.setRouteId(bus.getRoute().getId());
+	        dto.setRouteName(bus.getRoute().getRouteName());
 
 	        response.add(dto);
 	    }
 
 	    return ResponseEntity.ok(response);
-	
 	}
 	
 	@PostMapping("/buses")
-	public ResponseEntity<BusResponse> createBus(@RequestBody BusRequest request) {
+	public ResponseEntity<?> createBus(@RequestBody BusRequest request) {
 
 	    Bus bus = adminService.createbus(request);
 
@@ -65,16 +66,17 @@ public class BusController {
 	    response.setPlateNumber(bus.getPlateNumber());
 	    response.setCapacity(bus.getCapacity());
 
-	    if (bus.getDriver() != null) {
-	        response.setDriverId(bus.getDriver().getId());
-	        response.setDriverName(bus.getDriver().getFullName());
-	    }
+	    response.setDriverId(bus.getDriver().getId());
+	    response.setDriverName(bus.getDriver().getFullName());
+
+	    response.setRouteId(bus.getRoute().getId());
+	    response.setRouteName(bus.getRoute().getRouteName());
 
 	    return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 	
 	@PutMapping("/buses/{id}")
-	public ResponseEntity<BusResponse> updateBus(@PathVariable Long id, @RequestBody BusRequest request) {
+	public ResponseEntity<?> updateBus(@PathVariable Long id, @RequestBody BusRequest request) {
 
 	    Bus bus = adminService.updateBus(id, request);
 
@@ -85,14 +87,21 @@ public class BusController {
 	    response.setPlateNumber(bus.getPlateNumber());
 	    response.setCapacity(bus.getCapacity());
 
-	    if (bus.getDriver() != null) {
-	        response.setDriverId(bus.getDriver().getId());
-	        response.setDriverName(bus.getDriver().getFullName());
-	    }
+	    response.setDriverId(bus.getDriver().getId());
+	    response.setDriverName(bus.getDriver().getFullName());
+
+	    response.setRouteId(bus.getRoute().getId());
+	    response.setRouteName(bus.getRoute().getRouteName());
 
 	    return ResponseEntity.ok(response);
 	}
 	
-	
+	@DeleteMapping("/buses/{id}")
+	public ResponseEntity<?> deleteBus(@PathVariable Long id) {
+		
+		adminService.deleteBus(id);
+		
+		return ResponseEntity.noContent().build();
+	}
 
 }
