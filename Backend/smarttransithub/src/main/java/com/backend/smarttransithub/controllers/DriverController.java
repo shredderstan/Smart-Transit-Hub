@@ -2,6 +2,7 @@ package com.backend.smarttransithub.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,11 @@ import lombok.RequiredArgsConstructor;
 public class DriverController {
 
     private final RedisTrackingService redisTrackingService;
+
+
+@Controller
+@RequestMapping("/api/driver")
+public class DriverController {
 
     @GetMapping("/assigned-bus")
     public ResponseEntity<?> getAssignedBus() {
@@ -50,5 +56,5 @@ public class DriverController {
         // Implement logic to stream telemetry data
         return ResponseEntity.ok("Telemetry data streamed successfully");
     }
-
+  }
 }

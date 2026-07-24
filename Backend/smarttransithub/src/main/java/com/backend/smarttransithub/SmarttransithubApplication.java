@@ -6,6 +6,8 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class SmarttransithubApplication {
@@ -13,7 +15,6 @@ public class SmarttransithubApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SmarttransithubApplication.class, args);
 	}
-
 	
 	@Bean 
 	 ModelMapper modelMapper()
@@ -26,5 +27,5 @@ public class SmarttransithubApplication {
 		.setPropertyCondition(Conditions.isNotNull());
 		return mapper;//Method rets configured ModelMapper bean to SC
 	}
-	
+
 }

@@ -25,11 +25,22 @@ public class ParentController {
     public ResponseEntity<?> getStudents(@AuthenticationPrincipal Long userId) {
         
         return ResponseEntity.ok(parentService.getStudents(userId));
+
+@Controller
+@RequestMapping("/api/parent")
+public class ParentController {
+    
+    @GetMapping("/student/profile")
+    public ResponseEntity<?> getStudents() {
+        // Implement logic to retrieve students associated with the parent
+        return ResponseEntity.ok("Retrieved students for parent");
     }
 
     @GetMapping("/trips/{tripId}/latest")
     public ResponseEntity<?> getLatestTripData(@PathVariable Long tripId) {
         return ResponseEntity.ok(parentService.getLatestTripData(tripId));
+        // Implement logic to retrieve the latest trip data for a specific trip
+        return ResponseEntity.ok("Retrieved latest trip data for trip with ID: " + tripId);
     }
 
     @PostMapping("/notifications/register-token")

@@ -32,7 +32,7 @@ public class Bus extends BaseEntity {
 	@JoinColumn(name = "driver_user_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_bus_driver"))
 	private User driver;
 	
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "route_id", nullable = false, foreignKey = @ForeignKey(name = "fk_bus_route"))
 	private Route route;
 
