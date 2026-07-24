@@ -4,23 +4,25 @@ package com.backend.smarttransithub.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.smarttransithub.dtos.request.TelemetryDataDto;
 import com.backend.smarttransithub.dtos.request.TripInitializationDto;
+import com.backend.smarttransithub.services.RedisTrackingService;
 
 import lombok.RequiredArgsConstructor;
 
-@Controller
+@RestController
 @RequestMapping("/api/driver")
 @RequiredArgsConstructor
 public class DriverController {
 
+    private final RedisTrackingService redisTrackingService;
 
     @GetMapping("/assigned-bus")
     public ResponseEntity<?> getAssignedBus(@AuthenticationPrincipal Long driverId) {
