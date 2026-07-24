@@ -39,6 +39,10 @@ public class Bus extends BaseEntity {
     @Column(name = "plate_number", nullable = false, unique = true, length = 20)
     private String plateNumber;
 
+	@Column(name = "route_id", nullable = false)
+	@OneToOne
+	private Route route;
+
     @Column(nullable = false)
     private Integer capacity;
 

@@ -3,7 +3,6 @@ package com.backend.smarttransithub.services;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,7 +10,6 @@ import com.backend.smarttransithub.Security.CustomUserDetailsImpl;
 import com.backend.smarttransithub.Security.JwtUtils;
 import com.backend.smarttransithub.dtos.request.LoginDto;
 import com.backend.smarttransithub.dtos.response.AuthResp;
-import com.backend.smarttransithub.repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-	private final UserRepository userRepository;
-	
-	
-	private final PasswordEncoder encoder;
 	private final AuthenticationManager manager;
 	private final JwtUtils jwtUtils;
 
