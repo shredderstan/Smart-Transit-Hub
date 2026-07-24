@@ -72,7 +72,7 @@ public class DriverServiceImpl implements DriverService {
                 .orElseThrow(() -> new RuntimeException("Trip not found"));
         trip.setStatus(TripStatus.COMPLETED);
         trip.setEndTime(Instant.now());
-        tripRepository.save(trip);
+        tripRepository.flush();
         redisTrackingService.terminateTripTracking(trip.getId(), trip.getBus().getId());
         return true; // Replace with actual implementation
     }

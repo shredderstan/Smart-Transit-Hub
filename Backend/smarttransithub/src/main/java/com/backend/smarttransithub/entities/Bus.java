@@ -1,7 +1,5 @@
 package com.backend.smarttransithub.entities;
 
-
-
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,29 +22,24 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @AttributeOverride(name = "id", column = @Column(name = "bus_id"))
 public class Bus extends BaseEntity {
-	
+
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "driver_user_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_bus_driver"))
 	private User driver;
-	
+
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "route_id", nullable = false, foreignKey = @ForeignKey(name = "fk_bus_route"))
 	private Route route;
 
-    @Column(name = "bus_number", nullable = false, unique = true, length = 20)
-    private String busNumber;
+	@Column(name = "bus_number", nullable = false, unique = true, length = 20)
+	private String busNumber;
 
-    @Column(name = "plate_number", nullable = false, unique = true, length = 20)
-    private String plateNumber;
+	@Column(name = "plate_number", nullable = false, unique = true, length = 20)
+	private String plateNumber;
 
-	@Column(name = "route_id", nullable = false)
-	@OneToOne
-	private Route route;
-
-    @Column(nullable = false)
-    private Integer capacity;
+	@Column(nullable = false)
+	private Integer capacity;
 
 }

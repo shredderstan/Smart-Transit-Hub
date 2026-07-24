@@ -36,13 +36,13 @@ public class ParentServiceImpl implements ParentService {
 	private final RedisTrackingService redisService;
 	private final TripRepository tripRepository;
 	private final BusRepository busRepository;
-	
+
 	@Override
 	public List<StudentResponse> getStudents(Long id) {
 		List<Student> studentList = studentRepository.findByParentId(id);
 		List<StudentResponse> responseList = new ArrayList<>();
-		
-		for(Student student : studentList) {
+
+		for (Student student : studentList) {
 			responseList.add(mapper.map(student, StudentResponse.class));
 		}
 		return responseList;
@@ -59,36 +59,20 @@ public class ParentServiceImpl implements ParentService {
 		// Convert back to Instant
 		Instant instant = Instant.parse(timestampStr);
 		LocalDateTime timestamp = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-		
+
 		Long nextStopId = redisService.getNextStopId(tripId);
 		String nextStopName = redisService.getNextStopName(nextStopId, tripId);
-		
-		
-		Trip trip = tripRepository.findById(tripId).orElseThrow(()-> new ResourceNotFoundException("trip not found"));
-		Long routeId = trip.getRoute().getId();		
+
+		Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new ResourceNotFoundException("trip not found"));
+		Long routeId = trip.getRoute().getId();
 		Long busId = trip.getBus().getId();
-		
-		Bus bus = busRepository.findById(busId).orElseThrow(()-> new ResourceNotFoundException("bus not found"));
+
+		Bus bus = busRepository.findById(busId).orElseThrow(() -> new ResourceNotFoundException("bus not found"));
 		String busNumber = bus.getBusNumber();
-		
-		Double distance = redisService.checkGeofence(tripId, routeId, busNumber);
-		
-		
+
+		Double distance = redisService.checkGeofence(tripId, busNumber);
+
 		return new TripDataResponse(latitude, longitude, speed, timestamp, nextStopId, nextStopName, distance);
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
