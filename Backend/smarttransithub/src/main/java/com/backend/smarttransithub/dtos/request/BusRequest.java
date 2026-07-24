@@ -7,8 +7,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class BusRequest {
 
     private String busNumber;
@@ -18,5 +18,7 @@ public class BusRequest {
     private Integer capacity;
 
     private Long driverUserId;
+
+    private Long routeId;
 
 }
