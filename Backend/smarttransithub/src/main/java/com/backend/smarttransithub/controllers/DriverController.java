@@ -22,11 +22,6 @@ public class DriverController {
 
     private final DriverService driverService;
 
-
-@Controller
-@RequestMapping("/api/driver")
-public class DriverController {
-
     @GetMapping("/assigned-bus")
     public ResponseEntity<?> getAssignedBus(@AuthenticationPrincipal Long driverId) {
         
