@@ -1,6 +1,7 @@
 package com.backend.smarttransithub.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,20 +10,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.backend.smarttransithub.services.ParentService;
+
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/parent")
 public class ParentController {
     
+	private final ParentService parentService;
+	
     @GetMapping("/student/profile")
-    public ResponseEntity<?> getStudents() {
-        // Implement logic to retrieve students associated with the parent
-        return ResponseEntity.ok("Retrieved students for parent");
+    public ResponseEntity<?> getStudents(@AuthenticationPrincipal Long userId) {
+        
+        return ResponseEntity.ok(parentService.getStudents(userId));
     }
 
     @GetMapping("/trips/{tripId}/latest")
     public ResponseEntity<?> getLatestTripData(@PathVariable Long tripId) {
-        // Implement logic to retrieve the latest trip data for a specific trip
-        return ResponseEntity.ok("Retrieved latest trip data for trip with ID: " + tripId);
+        return ResponseEntity.ok(parentService.getLatestTripData(tripId));
     }
 
     @PostMapping("/notifications/register-token")
