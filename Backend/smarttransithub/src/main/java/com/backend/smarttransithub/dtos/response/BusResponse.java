@@ -7,8 +7,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class BusResponse {
 
     private Long id;
@@ -22,5 +22,9 @@ public class BusResponse {
     private Long driverId;
 
     private String driverName;
+
+    private Long routeId;
+
+    private String routeName;
 
 }

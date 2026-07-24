@@ -108,6 +108,12 @@ public class RedisTrackingService {
 		return stopIdStr != null ? Long.parseLong(stopIdStr) : null;
 	}
 
+	public String getNextStopName(Long nextStopId, Long tripId) {
+		String namesKey = "trip:stop-names:" + tripId;
+		String stopName = (String) redisTemplate.opsForHash().get(namesKey, nextStopId.toString());
+		return stopName;
+	}
+	
 	/**
 	 * Helper: Fetch the cached routeId for this trip.
 	 */

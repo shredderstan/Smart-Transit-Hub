@@ -3,6 +3,7 @@ package com.backend.smarttransithub.controllers;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -36,12 +37,15 @@ import lombok.RequiredArgsConstructor;
 public class AdminController {
 
     private final AdminService adminService;
+    private final ModelMapper modelMapper;
 
     @GetMapping("/users")
     public ResponseEntity<?> getUsers(@RequestParam Role role) {
     	
-    	List<UserResponse> response = adminService.getUsers(role).stream()
-    			.map(user -> new UserResponse(user.getId(), user.getUsername(), user.getFullName(), user.getPhoneNumber(), user.getRole(), user.getIsActive())).toList();
+    	List<UserResponse> response = adminService.getUsers(role)
+    	        .stream()
+    	        .map(user -> modelMapper.map(user, UserResponse.class))
+    	        .toList();
     	
         return ResponseEntity.ok(response);
     }
@@ -50,14 +54,7 @@ public class AdminController {
     public ResponseEntity<?> createUser(@RequestBody UserRequest request)
     {
     	User user = adminService.createUser(request);
-    	UserResponse response = new UserResponse();
-    	
-    	response.setId(user.getId());
-    	response.setUsername(user.getUsername());
-    	response.setFullName(user.getFullName());
-    	response.setPhoneNumber(user.getPhoneNumber());
-    	response.setRole(user.getRole());
-    	response.setIsActive(user.getIsActive());
+    	UserResponse response = modelMapper.map(user, UserResponse.class);
     	
     	return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -66,16 +63,9 @@ public class AdminController {
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserRequest request)
     {
     	User user = adminService.updateUser(id, request);
-    	UserResponse response = new UserResponse();
+    	UserResponse response = modelMapper.map(user, UserResponse.class);
 
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setFullName(user.getFullName());
-        response.setPhoneNumber(user.getPhoneNumber());
-        response.setRole(user.getRole());
-        response.setIsActive(user.getIsActive());
-
-        return ResponseEntity.ok(response);
+    	return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/users/{id}")
@@ -87,23 +77,9 @@ public class AdminController {
     }
     
     @GetMapping("/routes/{routeId}/stops")
-    public ResponseEntity<?> getStops(
-            @PathVariable Long routeId) {
+    public ResponseEntity<?> getStops(@PathVariable Long routeId) {
 
-        List<StopResponse> response = new ArrayList<>();
-
-        for (Stop stop : adminService.getStops(routeId)) {
-
-            StopResponse dto = new StopResponse();
-
-            dto.setId(stop.getId());
-            dto.setStopName(stop.getStopName());
-            dto.setLatitude(stop.getLatitude());
-            dto.setLongitude(stop.getLongitude());
-            dto.setSequenceOrder(stop.getSequenceOrder());
-
-            response.add(dto);
-        }
+        List<StopResponse> response = adminService.getStops(routeId).stream().map(stop -> modelMapper.map(routeId, StopResponse.class)).toList();
 
         return ResponseEntity.ok(response);
     }
@@ -111,20 +87,11 @@ public class AdminController {
     @PostMapping("/routes/{routeId}/stops")
     public ResponseEntity<?> saveStops(@PathVariable Long routeId, @RequestBody List<StopRequest> request) {
 
-        List<StopResponse> response = new ArrayList<>();
-
-        for (Stop stop : adminService.saveStops(routeId, request)) {
-
-            StopResponse dto = new StopResponse();
-
-            dto.setId(stop.getId());
-            dto.setStopName(stop.getStopName());
-            dto.setLatitude(stop.getLatitude());
-            dto.setLongitude(stop.getLongitude());
-            dto.setSequenceOrder(stop.getSequenceOrder());
-
-            response.add(dto);
-        }
+    	List<StopResponse> response =
+    	        adminService.saveStops(routeId, request)
+    	        .stream()
+    	        .map(stop -> modelMapper.map(stop, StopResponse.class))
+    	        .toList();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

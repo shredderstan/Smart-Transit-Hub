@@ -17,6 +17,8 @@ import com.backend.smarttransithub.entities.Stop;
 import com.backend.smarttransithub.entities.Student;
 import com.backend.smarttransithub.entities.User;
 import com.backend.smarttransithub.enums.Role;
+import com.backend.smarttransithub.exceptions.ResourceNotFoundException;
+import com.backend.smarttransithub.exceptions_handler.GlobalExceptionHandler;
 import com.backend.smarttransithub.repositories.BusRepository;
 import com.backend.smarttransithub.repositories.RouteRepository;
 import com.backend.smarttransithub.repositories.StopRepository;
@@ -68,7 +70,7 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public User updateUser(Long id, UserRequest request) {
 
-		User user = userRepo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+		User user = userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		user.setUsername(request.getUsername());
 		user.setFullName(request.getFullName());
@@ -87,13 +89,15 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public void deleteUser(Long id) {
 
-		User user = userRepo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+		User user = userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		user.setIsActive(false);
 
 		userRepo.save(user);
 
 	}
+
+	// BUSES
 
 	@Override
 	public List<Bus> getBuses() {
@@ -110,7 +114,10 @@ public class AdminServiceImpl implements AdminService {
 			throw new RuntimeException("Plate number already exists");
 
 		User driver = userRepo.findById(request.getDriverUserId())
-				.orElseThrow(() -> new RuntimeException("Driver not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Driver not found"));
+
+		Route route = routeRepo.findById(request.getRouteId())
+				.orElseThrow(() -> new ResourceNotFoundException("Route Not found"));
 
 		Bus bus = new Bus();
 
@@ -118,6 +125,7 @@ public class AdminServiceImpl implements AdminService {
 		bus.setPlateNumber(request.getPlateNumber());
 		bus.setCapacity(request.getCapacity());
 		bus.setDriver(driver);
+		bus.setRoute(route);
 
 		return busRepo.save(bus);
 
@@ -126,22 +134,31 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public Bus updateBus(Long id, BusRequest request) {
 
-		Bus bus = busRepo.findById(id).orElseThrow(() -> new RuntimeException("Bus not found"));
+		Bus bus = busRepo.findById(id)
+				.orElseThrow(() -> new RuntimeException("Bus not found"));
 
 		User driver = userRepo.findById(request.getDriverUserId())
 				.orElseThrow(() -> new RuntimeException("Driver not found"));
+
+		if (driver.getRole() != Role.ROLE_DRIVER) {
+			throw new RuntimeException("Selected user is not a driver");
+		}
+
+		Route route = routeRepo.findById(request.getRouteId())
+				.orElseThrow(() -> new RuntimeException("Route not found"));
 
 		bus.setBusNumber(request.getBusNumber());
 		bus.setPlateNumber(request.getPlateNumber());
 		bus.setCapacity(request.getCapacity());
 		bus.setDriver(driver);
+		bus.setRoute(route);
 
 		return busRepo.save(bus);
 	}
 
 	@Override
 	public void deleteBus(Long id) {
-		Bus bus = busRepo.findById(id).orElseThrow(() -> new RuntimeException("Bus not found"));
+		Bus bus = busRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bus not found"));
 
 		busRepo.delete(bus);
 	}
