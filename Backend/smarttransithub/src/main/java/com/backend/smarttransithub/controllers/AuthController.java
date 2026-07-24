@@ -10,16 +10,18 @@ import com.backend.smarttransithub.dtos.request.LoginDto;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
-
+	private final AuthService authService;
+	
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
-        // Implement login logic here
-        return ResponseEntity.ok("Login successful");
+    public ResponseEntity<?> login(@RequestBody LoginDto request) {
+        return ResponseEntity.ok(authService.authenticateUser(request));
     }
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         // Implement logout logic here
+    	//and add refresh token invalidation
         return ResponseEntity.ok("Logout successful");
     }
 }
