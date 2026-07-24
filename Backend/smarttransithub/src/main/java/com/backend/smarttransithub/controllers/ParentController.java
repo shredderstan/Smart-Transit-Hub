@@ -29,8 +29,6 @@ public class ParentController {
     @GetMapping("/trips/{tripId}/latest")
     public ResponseEntity<?> getLatestTripData(@PathVariable Long tripId) {
         return ResponseEntity.ok(parentService.getLatestTripData(tripId));
-        // Implement logic to retrieve the latest trip data for a specific trip
-        return ResponseEntity.ok("Retrieved latest trip data for trip with ID: " + tripId);
     }
 
     @PostMapping("/notifications/register-token")

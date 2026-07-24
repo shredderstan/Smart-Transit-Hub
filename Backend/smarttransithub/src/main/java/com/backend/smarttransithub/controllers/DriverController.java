@@ -2,7 +2,6 @@ package com.backend.smarttransithub.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +23,7 @@ public class DriverController {
 
     @GetMapping("/assigned-bus")
     public ResponseEntity<?> getAssignedBus(@AuthenticationPrincipal Long driverId) {
-        
+
         return ResponseEntity.ok(driverService.getAssignedBus(driverId));
     }
 
@@ -33,7 +32,7 @@ public class DriverController {
         // Implement logic to initialize a trip
         return ResponseEntity.ok("Trip initialized successfully");
     }
-    
+
     @PostMapping("/trips/{tripId}/terminate")
     public ResponseEntity<?> terminateTrip(@PathVariable Long tripId) {
         // Implement logic to terminate a trip
@@ -53,5 +52,4 @@ public class DriverController {
         // Implement logic to stream telemetry data
         return ResponseEntity.ok("Telemetry data streamed successfully");
     }
-  }
 }

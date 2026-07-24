@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.backend.smarttransithub.dtos.response.StudentResponse;
@@ -20,8 +19,6 @@ import com.backend.smarttransithub.exceptions.ResourceNotFoundException;
 import com.backend.smarttransithub.repositories.BusRepository;
 import com.backend.smarttransithub.repositories.StudentRepository;
 import com.backend.smarttransithub.repositories.TripRepository;
-import com.backend.smarttransithub.repositories.UserRepository;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ParentServiceImpl implements ParentService {
 
-	private final UserRepository userRepo;
 	private final StudentRepository studentRepository;
 	private final ModelMapper mapper;
 	private final RedisTrackingService redisService;
@@ -64,7 +60,6 @@ public class ParentServiceImpl implements ParentService {
 		String nextStopName = redisService.getNextStopName(nextStopId, tripId);
 
 		Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new ResourceNotFoundException("trip not found"));
-		Long routeId = trip.getRoute().getId();
 		Long busId = trip.getBus().getId();
 
 		Bus bus = busRepository.findById(busId).orElseThrow(() -> new ResourceNotFoundException("bus not found"));
