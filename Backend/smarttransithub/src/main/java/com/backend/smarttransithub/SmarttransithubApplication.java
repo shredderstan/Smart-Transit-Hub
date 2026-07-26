@@ -14,17 +14,15 @@ public class SmarttransithubApplication {
 		SpringApplication.run(SmarttransithubApplication.class, args);
 	}
 
-	
-	@Bean 
-	 ModelMapper modelMapper()
-	{
-		ModelMapper mapper=new ModelMapper();
-		//configure mapper - to transfer the matching props (name + data type)
+	@Bean
+	ModelMapper modelMapper() {
+		ModelMapper mapper = new ModelMapper();
+		// configure mapper - to transfer the matching props (name + data type)
 		mapper.getConfiguration()
-		.setMatchingStrategy(MatchingStrategies.STRICT)
-		//configure mapper - not to transfer nulls from src -> dest
-		.setPropertyCondition(Conditions.isNotNull());
-		return mapper;//Method rets configured ModelMapper bean to SC
+				.setMatchingStrategy(MatchingStrategies.STRICT)
+				// configure mapper - not to transfer nulls from src -> dest
+				.setPropertyCondition(Conditions.isNotNull());
+		return mapper;// Method rets configured ModelMapper bean to SC
 	}
-	
+
 }

@@ -7,21 +7,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.smarttransithub.dtos.request.LoginDto;
+import com.backend.smarttransithub.services.AuthService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-	private final AuthService authService;
-	
+    private final AuthService authService;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto request) {
         return ResponseEntity.ok(authService.authenticateUser(request));
     }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         // Implement logout logic here
-    	//and add refresh token invalidation
+        // and add refresh token invalidation
+
         return ResponseEntity.ok("Logout successful");
     }
 }

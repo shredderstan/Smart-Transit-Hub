@@ -1,5 +1,7 @@
 package com.backend.smarttransithub.dtos.request;
 
+import com.backend.smarttransithub.enums.DevicePlatform;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,10 +9,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class TripInitializationDto {
-    private String busId;
-    private String routeId;
-    private String tripType; // Must be "PICKUP" or "DROP"
+@AllArgsConstructor
+public class NotificationTokenDto {
+    private String fcmToken;
+    private DevicePlatform platform;
 }

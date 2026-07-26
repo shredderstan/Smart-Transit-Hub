@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.backend.smarttransithub.entities.Trip;
 
-public interface TripRepository extends JpaRepository<Long, Trip>{
-	Optional<Trip> findById(Long tripId);
+public interface TripRepository extends JpaRepository<Trip, Long> {
+    Optional<Trip> findById(Long tripId);
+
+    Optional<Trip> findByBusId(Long busId);
+
+    boolean existsByBusIdAndStatus(Long busId, String status);
 }

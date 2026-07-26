@@ -16,7 +16,7 @@ public class FcmService {
     {
         if(token==null || token.isBlank())
         {
-            System.out.println("Token is null or blank. Cannot send notification.");
+            //log here;
             return;
         }
         //Build the notification in Notification Class.

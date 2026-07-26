@@ -2,7 +2,6 @@ package com.backend.smarttransithub.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,20 +9,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.backend.smarttransithub.services.ParentService;
-
 import lombok.RequiredArgsConstructor;
 
+import com.backend.smarttransithub.dtos.request.NotificationTokenDto;
+import com.backend.smarttransithub.services.ParentService;
+
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/parent")
+@RequiredArgsConstructor
 public class ParentController {
-    
-	private final ParentService parentService;
-	
+
+    private final ParentService parentService;
+
     @GetMapping("/student/profile")
     public ResponseEntity<?> getStudents(@AuthenticationPrincipal Long userId) {
-        
+
         return ResponseEntity.ok(parentService.getStudents(userId));
     }
 
@@ -33,9 +33,8 @@ public class ParentController {
     }
 
     @PostMapping("/notifications/register-token")
-    public ResponseEntity<?> registerNotificationToken(@RequestBody NotificationTokenDto notificationTokenDto) {
-        // Implement logic to register notification token for the parent
-        return ResponseEntity.ok("Notification token registered successfully");
+    public ResponseEntity<?> registerNotificationToken(@AuthenticationPrincipal Long userId, @RequestBody NotificationTokenDto notificationTokenDto) {
+        return ResponseEntity.ok(parentService.registerNotificationToken(userId, notificationTokenDto));
     }
 
     @PostMapping("/notifications/remove-token")

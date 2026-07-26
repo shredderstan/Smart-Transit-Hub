@@ -21,6 +21,7 @@ public class StudentResponse {
 
     private Long parentId;
 
+    private String parentName;
 
     private Long stopId;
 
