@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import com.backend.smarttransithub.services.ParentService;
 
 import com.backend.smarttransithub.dtos.request.NotificationTokenDto;
 import com.backend.smarttransithub.services.ParentService;
@@ -39,7 +40,6 @@ public class ParentController {
 
     @PostMapping("/notifications/remove-token")
     public ResponseEntity<?> removeNotificationToken(@RequestBody NotificationTokenDto notificationTokenDto) {
-        // Implement logic to remove notification token for the parent
-        return ResponseEntity.ok("Notification token removed successfully");
+       return ResponseEntity.ok(parentService.removeNotificationToken(userId, notificationTokenDto));
     }
 }
