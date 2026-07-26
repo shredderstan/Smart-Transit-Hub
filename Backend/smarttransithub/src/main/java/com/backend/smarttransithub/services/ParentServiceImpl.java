@@ -10,15 +10,23 @@ import java.util.Map;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.backend.smarttransithub.dtos.request.NotificationTokenDto;
+import com.backend.smarttransithub.dtos.response.ApiResponse;
 import com.backend.smarttransithub.dtos.response.StudentResponse;
 import com.backend.smarttransithub.dtos.response.TripDataResponse;
 import com.backend.smarttransithub.entities.Bus;
 import com.backend.smarttransithub.entities.Student;
 import com.backend.smarttransithub.entities.Trip;
+import com.backend.smarttransithub.entities.User;
+import com.backend.smarttransithub.entities.UserDevice;
+import com.backend.smarttransithub.enums.DevicePlatform;
 import com.backend.smarttransithub.exceptions.ResourceNotFoundException;
 import com.backend.smarttransithub.repositories.BusRepository;
 import com.backend.smarttransithub.repositories.StudentRepository;
 import com.backend.smarttransithub.repositories.TripRepository;
+import com.backend.smarttransithub.repositories.UserDeviceRepository;
+import com.backend.smarttransithub.repositories.UserRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +40,8 @@ public class ParentServiceImpl implements ParentService {
 	private final RedisTrackingService redisService;
 	private final TripRepository tripRepository;
 	private final BusRepository busRepository;
+	private final UserDeviceRepository userDeviceRepository;
+	private final UserRepository userRepository;
 
 	@Override
 	public List<StudentResponse> getStudents(Long id) {
@@ -68,6 +78,33 @@ public class ParentServiceImpl implements ParentService {
 		Double distance = redisService.checkGeofence(tripId, busNumber);
 
 		return new TripDataResponse(latitude, longitude, speed, timestamp, nextStopId, nextStopName, distance);
+	}
+
+	@Override
+	public ApiResponse registerNotificationToken(Long userId, NotificationTokenDto request) {
+		String fcmToken = request.getFcmToken();
+		DevicePlatform devicePlatform = request.getPlatform();
+		LocalDateTime dateTime = LocalDateTime.now();
+		User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("invalid user id"));
+
+		List<UserDevice> userDeviceList = userDeviceRepository.findByFcmToken(fcmToken);
+		if(userDeviceList.isEmpty()){
+			UserDevice userDevice = new UserDevice(null, user, fcmToken, devicePlatform, dateTime);
+			userDeviceRepository.save(userDevice);
+			return new ApiResponse("success", "fcm token stored in db");
+		}
+		return new ApiResponse("success", "fcmToken already registered");
+	}
+
+	@Override
+	public ApiResponse removeNotificationToken(Long userId, NotificationTokenDto request) {
+		String fcmToken = request.getFcmToken();
+		DevicePlatform devicePlatform = request.getPlatform();
+		User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("invalid user id"));
+
+		UserDevice userDevice = userDeviceRepository.findByFcmTokenAndUserAndDeviceType(fcmToken, user, devicePlatform).orElseThrow(()-> new ResourceNotFoundException("token related to given user not found"));
+		userDeviceRepository.delete(userDevice);
+		return new ApiResponse("success", "token removed for user : " + user.getId());
 	}
 
 }
