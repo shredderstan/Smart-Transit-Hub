@@ -30,8 +30,8 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 		try {
 			String header = request.getHeader("Authorization");
 			if (header != null && header.startsWith("Bearer ")) {
-				String jwt = header.substring(7);
-				log.info("******************* jwt : ", jwt);
+				String jwt = header.substring(7).trim();
+				log.info("******************* jwt : [{}]", jwt);
 				Claims payload = jwtUtils.verifyJwtAndExtractClaims(jwt);
 
 				// using claims create authentication object

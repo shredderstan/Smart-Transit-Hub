@@ -40,9 +40,9 @@ public class AdminController {
     private final ModelMapper modelMapper;
 
     @GetMapping("/users")
-    public ResponseEntity<?> getUsers(@RequestParam Role role) {
+    public ResponseEntity<?> getUsers(/*@RequestParam Role role*/) {
     	
-    	List<UserResponse> response = adminService.getUsers(role)
+    	List<UserResponse> response = adminService.getUsers(null)
     	        .stream()
     	        .map(user -> modelMapper.map(user, UserResponse.class))
     	        .toList();
