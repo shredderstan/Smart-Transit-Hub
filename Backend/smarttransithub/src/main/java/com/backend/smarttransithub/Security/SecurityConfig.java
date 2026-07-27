@@ -34,7 +34,7 @@ public class SecurityConfig {
 		//add rules to secure endpoints
 		
 		http.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/api/auth/login").permitAll()
+				.requestMatchers("/api/auth/login","/v3/api-docs/**","/swagger-ui/**").permitAll()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
 				.requestMatchers("/api/driver/**").hasRole("DRIVER")
 				.requestMatchers("/api/parent/**").hasRole("PARENT")

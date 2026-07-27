@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Student extends BaseEntity {
+public class Student  {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

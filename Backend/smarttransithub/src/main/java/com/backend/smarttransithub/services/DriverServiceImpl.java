@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.backend.smarttransithub.dtos.request.TelemetryDataDto;
+import com.backend.smarttransithub.dtos.response.TelemetryResponseDto;
 import com.backend.smarttransithub.dtos.response.TripInitDto;
 import com.backend.smarttransithub.entities.Bus;
 import com.backend.smarttransithub.entities.Route;
@@ -82,6 +84,45 @@ public class DriverServiceImpl implements DriverService {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found"));
         return stopRepository.findByRouteIdOrderBySequenceOrderAsc(trip.getRoute().getId());
+    }
+
+    @Override
+    public TelemetryResponseDto streamTelemetryData(TelemetryDataDto dto)
+    {
+        // 1. Updating the current location of Bus
+        redisTrackingService.updateBusLocation(
+            dto.getTripId(),
+            dto.getLatitude(), 
+            dto.getLongitude(),
+            dto.getSpeed()
+        );
+         // 2. Perform geofence checks and capture the calculated distance to the next stop
+        Double distance = redisTrackingService.checkGeofence(dto.getTripId(), dto.getBusNumber());
+        // 3. Resolve the next stop ID from Redis cache
+        Long nextStopId = redisTrackingService.getNextStopId(dto.getTripId());
+        
+        // 4. Build a meaningful response payload
+        if (nextStopId == null) {
+            // Case: All stops on the route are completed
+            return new TelemetryResponseDto(
+                "All Stops Completed",
+                0.0,
+                redisTrackingService.getNextStopIndex(dto.getTripId()),
+                "Route completed. Please terminate the trip."
+            );
+        }
+        // Case: Driving towards the next stop
+        String nextStopName = redisTrackingService.getNextStopName(nextStopId, dto.getTripId());
+        Integer nextStopIndex = redisTrackingService.getNextStopIndex(dto.getTripId());
+        String statusMessage = (distance <= 50.0) 
+                ? "Arrived at stop. Advancing sequence..." 
+                : (distance <= 500.0) ? "Approaching stop (Proximity Alert Sent)" : "En Route";
+        return new TelemetryResponseDto(
+            nextStopName,
+            distance,
+            nextStopIndex,
+            statusMessage
+        );
     }
 
 }

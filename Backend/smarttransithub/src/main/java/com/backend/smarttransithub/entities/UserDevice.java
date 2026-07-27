@@ -30,7 +30,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDevice extends BaseEntity{
+public class UserDevice {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
