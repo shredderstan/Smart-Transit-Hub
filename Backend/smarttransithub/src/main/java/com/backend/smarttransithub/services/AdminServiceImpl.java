@@ -18,7 +18,6 @@ import com.backend.smarttransithub.entities.Student;
 import com.backend.smarttransithub.entities.User;
 import com.backend.smarttransithub.enums.Role;
 import com.backend.smarttransithub.exceptions.ResourceNotFoundException;
-import com.backend.smarttransithub.exceptions_handler.GlobalExceptionHandler;
 import com.backend.smarttransithub.repositories.BusRepository;
 import com.backend.smarttransithub.repositories.RouteRepository;
 import com.backend.smarttransithub.repositories.StopRepository;

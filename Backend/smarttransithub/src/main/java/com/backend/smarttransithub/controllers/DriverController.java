@@ -30,13 +30,13 @@ public class DriverController {
     @PostMapping("/trips/initialize")
     public ResponseEntity<?> tripInitialization(@AuthenticationPrincipal Long driverId) {
         // Implement logic to initialize a trip
-        return ResponseEntity.ok("Trip initialized successfully");
+        return ResponseEntity.ok(driverService.initializeTrip(driverId));
     }
 
     @PostMapping("/trips/{tripId}/terminate")
     public ResponseEntity<?> terminateTrip(@PathVariable Long tripId) {
         // Implement logic to terminate a trip
-        return ResponseEntity.ok("Trip terminated successfully");
+        return ResponseEntity.ok(driverService.terminateTrip(tripId));
     }
 
     // Notification token registeration endpoint
@@ -44,12 +44,12 @@ public class DriverController {
     @GetMapping("/trips/{tripId}/stops")
     public ResponseEntity<?> getTripStops(@PathVariable Long tripId) {
         // Implement logic to retrieve stops for a specific trip
-        return ResponseEntity.ok("Retrieved stops for trip with ID: " + tripId);
+        return ResponseEntity.ok(driverService.getTripStops(tripId));
     }
 
     @PostMapping("/telemetry/stream")
     public ResponseEntity<?> streamTelemetryData(@RequestBody TelemetryDataDto telemetryDataDto) {
         // Implement logic to stream telemetry data
-        return ResponseEntity.ok("Telemetry data streamed successfully");
+        return ResponseEntity.ok(driverService.streamTelemetryData(telemetryDataDto));
     }
 }

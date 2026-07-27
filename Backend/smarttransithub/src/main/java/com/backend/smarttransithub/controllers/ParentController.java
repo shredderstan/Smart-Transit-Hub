@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import com.backend.smarttransithub.services.ParentService;
 
 import com.backend.smarttransithub.dtos.request.NotificationTokenDto;
-import com.backend.smarttransithub.services.ParentService;
 
 @RestController
 @RequestMapping("/api/parent")
@@ -34,12 +33,13 @@ public class ParentController {
     }
 
     @PostMapping("/notifications/register-token")
-    public ResponseEntity<?> registerNotificationToken(@AuthenticationPrincipal Long userId, @RequestBody NotificationTokenDto notificationTokenDto) {
+    public ResponseEntity<?> registerNotificationToken(@AuthenticationPrincipal Long userId,
+            @RequestBody NotificationTokenDto notificationTokenDto) {
         return ResponseEntity.ok(parentService.registerNotificationToken(userId, notificationTokenDto));
     }
 
     @PostMapping("/notifications/remove-token")
     public ResponseEntity<?> removeNotificationToken(@RequestBody NotificationTokenDto notificationTokenDto) {
-       return ResponseEntity.ok(parentService.removeNotificationToken(userId, notificationTokenDto));
+        return ResponseEntity.ok(parentService.removeNotificationToken(userId, notificationTokenDto));
     }
 }
