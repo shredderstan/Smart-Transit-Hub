@@ -39,7 +39,7 @@ public class ParentController {
     }
 
     @PostMapping("/notifications/remove-token")
-    public ResponseEntity<?> removeNotificationToken(@RequestBody NotificationTokenDto notificationTokenDto) {
+    public ResponseEntity<?> removeNotificationToken(@AuthenticationPrincipal Long userId, @RequestBody NotificationTokenDto notificationTokenDto) {
         return ResponseEntity.ok(parentService.removeNotificationToken(userId, notificationTokenDto));
     }
 }
