@@ -90,7 +90,7 @@ export default function AdminDashboard() {
         username: uUsername,
         fullName: uFullName,
         phoneNumber: uPhone,
-        plainPassword: uPassword,
+        password: uPassword,
         role: uRole,
       });
       resetModal();
