@@ -15,6 +15,7 @@ import com.backend.smarttransithub.dtos.response.ApiResponse;
 import com.backend.smarttransithub.dtos.response.StudentResponse;
 import com.backend.smarttransithub.dtos.response.TripDataResponse;
 import com.backend.smarttransithub.entities.Bus;
+import com.backend.smarttransithub.entities.Stop;
 import com.backend.smarttransithub.entities.Student;
 import com.backend.smarttransithub.entities.Trip;
 import com.backend.smarttransithub.entities.User;
@@ -49,7 +50,14 @@ public class ParentServiceImpl implements ParentService {
 		List<StudentResponse> responseList = new ArrayList<>();
 
 		for (Student student : studentList) {
-			responseList.add(mapper.map(student, StudentResponse.class));
+			User parent = student.getParent();
+			Stop stop = student.getStop();
+			StudentResponse studentResponse = mapper.map(student, StudentResponse.class);
+			studentResponse.setParentId(parent.getId());
+			studentResponse.setParentName(parent.getFullName());
+			studentResponse.setStopId(stop.getId());
+			studentResponse.setStopName(stop.getStopName());
+			responseList.add(studentResponse);
 		}
 		return responseList;
 	}
