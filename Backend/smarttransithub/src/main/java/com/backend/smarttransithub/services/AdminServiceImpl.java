@@ -11,6 +11,7 @@ import com.backend.smarttransithub.dtos.request.RouteRequest;
 import com.backend.smarttransithub.dtos.request.StopRequest;
 import com.backend.smarttransithub.dtos.request.StudentRequest;
 import com.backend.smarttransithub.dtos.request.UserRequest;
+import com.backend.smarttransithub.dtos.response.StudentResponse;
 import com.backend.smarttransithub.entities.Bus;
 import com.backend.smarttransithub.entities.Route;
 import com.backend.smarttransithub.entities.Stop;
@@ -57,7 +58,7 @@ public class AdminServiceImpl implements AdminService {
 			throw new RuntimeException("Username already exists");
 
 		user.setUsername(request.getUsername());
-		user.setPasswordHash(request.getPassword());
+		user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 		user.setFullName(request.getFullName());
 		user.setPhoneNumber(request.getPhoneNumber());
 		user.setRole(request.getRole());
@@ -228,8 +229,27 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public List<Student> getStudents() {
-		return studentRepo.findAll();
+	public List<StudentResponse> getStudents() {
+		List<StudentResponse> response = new ArrayList<>();
+		List<Student> students = studentRepo.findAll();
+        for (Student student : students) {
+
+            StudentResponse dto = new StudentResponse();
+
+            dto.setId(student.getId());
+            dto.setFirstName(student.getFirstName());
+            dto.setLastName(student.getLastName());
+            dto.setRollNumber(student.getRollNumber());
+
+            dto.setParentId(student.getParent().getId());
+            dto.setParentName(student.getParent().getFullName());
+
+            dto.setStopId(student.getStop().getId());
+            dto.setStopName(student.getStop().getStopName());
+
+            response.add(dto);
+        }
+        return response;
 	}
 
 	@Override

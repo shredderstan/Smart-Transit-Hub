@@ -40,9 +40,9 @@ public class AdminController {
     private final ModelMapper modelMapper;
 
     @GetMapping("/users")
-    public ResponseEntity<?> getUsers(@RequestParam Role role) {
+    public ResponseEntity<?> getUsers(/*@RequestParam Role role*/) {
     	
-    	List<UserResponse> response = adminService.getUsers(role)
+    	List<UserResponse> response = adminService.getUsers(null)
     	        .stream()
     	        .map(user -> modelMapper.map(user, UserResponse.class))
     	        .toList();
@@ -79,7 +79,7 @@ public class AdminController {
     @GetMapping("/routes/{routeId}/stops")
     public ResponseEntity<?> getStops(@PathVariable Long routeId) {
 
-        List<StopResponse> response = adminService.getStops(routeId).stream().map(stop -> modelMapper.map(routeId, StopResponse.class)).toList();
+        List<StopResponse> response = adminService.getStops(routeId).stream().map(stop -> modelMapper.map(stop, StopResponse.class)).toList();
 
         return ResponseEntity.ok(response);
     }
@@ -99,27 +99,7 @@ public class AdminController {
     @GetMapping("/students")
     public ResponseEntity<?> getStudents() {
 
-        List<StudentResponse> response = new ArrayList<>();
-
-        for (Student student : adminService.getStudents()) {
-
-            StudentResponse dto = new StudentResponse();
-
-            dto.setId(student.getId());
-            dto.setFirstName(student.getFirstName());
-            dto.setLastName(student.getLastName());
-            dto.setRollNumber(student.getRollNumber());
-
-            dto.setParentId(student.getParent().getId());
-            dto.setParentName(student.getParent().getFullName());
-
-            dto.setStopId(student.getStop().getId());
-            dto.setStopName(student.getStop().getStopName());
-
-            response.add(dto);
-        }
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(adminService.getStudents());
     }
     
     @PostMapping("/students")

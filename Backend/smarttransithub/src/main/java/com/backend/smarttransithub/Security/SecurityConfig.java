@@ -31,10 +31,14 @@ public class SecurityConfig {
 		http.sessionManagement(session -> 
 			session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		
+		http.securityContext(context ->
+	    context.requireExplicitSave(false)
+				);
+		
 		//add rules to secure endpoints
 		
 		http.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/api/auth/login").permitAll()
+				.requestMatchers("/api/auth/login","/v3/api-docs/**","/swagger-ui/**", "/api/auth/register").permitAll()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
 				.requestMatchers("/api/driver/**").hasRole("DRIVER")
 				.requestMatchers("/api/parent/**").hasRole("PARENT")

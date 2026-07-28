@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtUtils {
 	@Value("${jwt.secret.key}")
 	private String secret;
-	@Value("{}jwt.emp.time")
+	@Value("${jwt.exp.time}")
 	private long expTime;
 	private SecretKey key;
 	

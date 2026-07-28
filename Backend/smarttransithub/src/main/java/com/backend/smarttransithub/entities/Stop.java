@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Stop extends BaseEntity {
+public class Stop {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
