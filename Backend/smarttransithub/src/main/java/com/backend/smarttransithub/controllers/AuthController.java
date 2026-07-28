@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.smarttransithub.dtos.request.LoginDto;
-import com.backend.smarttransithub.dtos.request.RegisterDto;
 import com.backend.smarttransithub.services.AuthService;
-import com.backend.smarttransithub.services.RegisterService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-    private final RegisterService registerService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto request) {
@@ -32,11 +29,5 @@ public class AuthController {
 
         return ResponseEntity.ok("Logout successful");
     }
-    
-    @PostMapping("/register")
-    public ResponseEntity<?> postMethodName(@RequestBody RegisterDto request) {
-        return ResponseEntity.ok(registerService.addUser(request));
-    }
-    
-    
+
 }

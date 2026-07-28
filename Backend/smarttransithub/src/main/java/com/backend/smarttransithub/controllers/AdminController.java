@@ -105,22 +105,7 @@ public class AdminController {
     @PostMapping("/students")
     public ResponseEntity<?> createStudent(@RequestBody StudentRequest request) {
 
-        Student student = adminService.createStudent(request);
-
-        StudentResponse response = new StudentResponse();
-
-        response.setId(student.getId());
-        response.setFirstName(student.getFirstName());
-        response.setLastName(student.getLastName());
-        response.setRollNumber(student.getRollNumber());
-
-        response.setParentId(student.getParent().getId());
-        response.setParentName(student.getParent().getFullName());
-
-        response.setStopId(student.getStop().getId());
-        response.setStopName(student.getStop().getStopName());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createStudent(request));
     }
     
     @PutMapping("/students/{id}")

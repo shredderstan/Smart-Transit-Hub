@@ -69,6 +69,7 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public User updateUser(Long id, UserRequest request) {
+		
 
 		User user = userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -253,8 +254,10 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public Student createStudent(StudentRequest request) {
+	public StudentResponse createStudent(StudentRequest request) {
+		
 
+        
 		User parent = userRepo.findById(request.getParentId())
 				.orElseThrow(() -> new RuntimeException("Parent not found"));
 
@@ -268,7 +271,23 @@ public class AdminServiceImpl implements AdminService {
 		student.setParent(parent);
 		student.setStop(stop);
 
-		return studentRepo.save(student);
+		student = studentRepo.save(student);
+		
+		StudentResponse response = new StudentResponse();
+
+        response.setId(student.getId());
+        response.setFirstName(student.getFirstName());
+        response.setLastName(student.getLastName());
+        response.setRollNumber(student.getRollNumber());
+
+        response.setParentId(student.getParent().getId());
+        response.setParentName(student.getParent().getFullName());
+
+        response.setStopId(student.getStop().getId());
+        response.setStopName(student.getStop().getStopName());
+
+		return response;
+
 	}
 
 	@Override
