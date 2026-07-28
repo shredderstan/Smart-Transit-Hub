@@ -41,7 +41,7 @@ public class User{
 	@Column(name = "full_name", nullable = false, length = 50)
 	private String fullName;
 	
-	@Column(name = "phone_number", length = 10)
+	@Column(name = "phone_number", length = 15)
 	private String phoneNumber;
 	
 	@Enumerated(EnumType.STRING)

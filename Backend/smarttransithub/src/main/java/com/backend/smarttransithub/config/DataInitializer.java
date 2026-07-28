@@ -26,7 +26,7 @@ public class DataInitializer implements CommandLineRunner {
             // Encrypt default password using BCrypt
             admin.setPasswordHash(passwordEncoder.encode("admin123"));
             admin.setFullName("Super Administrator");
-            admin.setPhoneNumber("+1 (555) 010-1001");
+            admin.setPhoneNumber("+15010-1001");
             admin.setRole(Role.ROLE_ADMIN);
             admin.setIsActive(true);
 
