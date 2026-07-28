@@ -7,6 +7,7 @@ import com.backend.smarttransithub.dtos.request.RouteRequest;
 import com.backend.smarttransithub.dtos.request.StopRequest;
 import com.backend.smarttransithub.dtos.request.StudentRequest;
 import com.backend.smarttransithub.dtos.request.UserRequest;
+import com.backend.smarttransithub.dtos.response.StudentResponse;
 import com.backend.smarttransithub.entities.Bus;
 import com.backend.smarttransithub.entities.Route;
 import com.backend.smarttransithub.entities.Stop;
@@ -35,7 +36,7 @@ public interface AdminService {
 	List<Stop> getStops(Long routeId);
 	List<Stop> saveStops(Long routeId, List<StopRequest> request);
 	
-	List<Student> getStudents();
+	List<StudentResponse> getStudents();
 	Student createStudent(StudentRequest request);
 	Student updateStudent(Long id, StudentRequest request);
 	void deleteStudent(Long id);
