@@ -85,7 +85,7 @@ public class AdminController {
     }
     
     @PostMapping("/routes/{routeId}/stops")
-    public ResponseEntity<?> saveStops(@PathVariable Long routeId, @RequestBody List<StopRequest> request) {
+    public ResponseEntity<?> saveStops(@PathVariable Long routeId, @RequestBody /*List<*/StopRequest/*>*/ request) {
 
     	List<StopResponse> response =
     	        adminService.saveStops(routeId, request)

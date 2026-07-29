@@ -206,30 +206,32 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	@Transactional // Ensures database consistency if any save fails
-	public List<Stop> saveStops(Long routeId, List<StopRequest> request) {
+	public List<Stop> saveStops(Long routeId, /*List<*/StopRequest/*>*/ request) {
 
 		Route route = routeRepo.findById(routeId)
 				.orElseThrow(() -> new RuntimeException("Route not found"));
 
 		// 1. Delete all existing stops for this route first to prevent sequence
 		// duplicates
-		stopRepo.deleteByRouteId(routeId);
+		//stopRepo.deleteByRouteId(routeId);
 
 		List<Stop> stops = new ArrayList<>();
 
-		for (StopRequest dto : request) {
+		//for (StopRequest dto : request) {
 			Stop stop = new Stop();
 			stop.setRoute(route);
-			stop.setStopName(dto.getStopName());
-			stop.setLatitude(dto.getLatitude());
-			stop.setLongitude(dto.getLongitude());
-			stop.setSequenceOrder(dto.getSequenceOrder());
+			stop.setStopName(request.getStopName());
+			stop.setLatitude(request.getLatitude());
+			stop.setLongitude(request.getLongitude());
+			stop.setSequenceOrder(request.getSequenceOrder());
 
 			stops.add(stop);
-		}
+			stopRepo.save(stop);
+		//}
 
 		// 2. Save the fresh sequence of stops
-		return stopRepo.saveAll(stops);
+		//return stopRepo.saveAll(stops);
+		return stopRepo.findAll();
 	}
 
 	@Override

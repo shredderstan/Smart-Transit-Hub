@@ -157,15 +157,15 @@ export default function AdminDashboard() {
     try {
       const routeId = parseInt(selectedRouteId, 10);
       const currentStops = await adminAPI.getStops(routeId);
-      const newStops = [
-        ...currentStops,
+       const newStops = //[
+      //   ...currentStops,
         {
           stopName,
           latitude: parseFloat(stopLat),
           longitude: parseFloat(stopLng),
           sequenceOrder: currentStops.length + 1,
-        },
-      ];
+         }
+      // ];
       await adminAPI.saveStops(routeId, newStops);
       resetModal();
       loadAllData();

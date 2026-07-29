@@ -34,7 +34,7 @@ public interface AdminService {
 	void deleteRoute(Long id);
 	
 	List<Stop> getStops(Long routeId);
-	List<Stop> saveStops(Long routeId, List<StopRequest> request);
+	List<Stop> saveStops(Long routeId, /*List<*/StopRequest/*>*/ request);
 	
 	List<StudentResponse> getStudents();
 	StudentResponse createStudent(StudentRequest request);
