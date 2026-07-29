@@ -32,7 +32,6 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public Bus getAssignedBus(Long driverId) {
-
         return busRepository.findByDriverId(driverId)
                 .orElseThrow(() -> new RuntimeException("No bus assigned to this driver"));
     }
@@ -45,14 +44,19 @@ public class DriverServiceImpl implements DriverService {
             throw new RuntimeException("No bus assigned to this driver");
         }
 
-        // 2. Check for existing active trip
-        if (tripRepository.existsByBusIdAndStatus(assignedBus.getId(), TripStatus.IN_PROGRESS)) {
-            throw new RuntimeException("A trip is already active for this bus");
-        }
-
         Route route = assignedBus.getRoute();
         if (route == null) {
             throw new RuntimeException("This bus has no assigned route");
+        }
+
+        // 2. Check for existing active trip and re-connect cleanly
+        Trip activeTrip = tripRepository.findFirstByBusIdAndStatus(assignedBus.getId(), TripStatus.IN_PROGRESS).orElse(null);
+        if (activeTrip != null) {
+            redisTrackingService.initializeTripTracking(
+                    activeTrip.getId(),
+                    assignedBus.getId(),
+                    route.getId());
+            return new TripInitDto(activeTrip.getId(), "Re-connected to active trip.");
         }
 
         // 3. Create and save new trip
@@ -76,7 +80,7 @@ public class DriverServiceImpl implements DriverService {
         trip.setEndTime(Instant.now());
         tripRepository.flush();
         redisTrackingService.terminateTripTracking(trip.getId(), trip.getBus().getId());
-        return true; // Replace with actual implementation
+        return true;
     }
 
     @Override
@@ -87,23 +91,20 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public TelemetryResponseDto streamTelemetryData(TelemetryDataDto dto)
-    {
-        // 1. Updating the current location of Bus
+    public TelemetryResponseDto streamTelemetryData(TelemetryDataDto dto) {
+        // 1. Update location in Redis / Memory cache
         redisTrackingService.updateBusLocation(
             dto.getTripId(),
             dto.getLatitude(), 
             dto.getLongitude(),
             dto.getSpeed()
         );
-         // 2. Perform geofence checks and capture the calculated distance to the next stop
+
+        // 2. Perform geofence checks and distance calculation
         Double distance = redisTrackingService.checkGeofence(dto.getTripId(), dto.getBusNumber());
-        // 3. Resolve the next stop ID from Redis cache
         Long nextStopId = redisTrackingService.getNextStopId(dto.getTripId());
         
-        // 4. Build a meaningful response payload
         if (nextStopId == null) {
-            // Case: All stops on the route are completed
             return new TelemetryResponseDto(
                 "All Stops Completed",
                 0.0,
@@ -111,12 +112,13 @@ public class DriverServiceImpl implements DriverService {
                 "Route completed. Please terminate the trip."
             );
         }
-        // Case: Driving towards the next stop
+
         String nextStopName = redisTrackingService.getNextStopName(nextStopId, dto.getTripId());
         Integer nextStopIndex = redisTrackingService.getNextStopIndex(dto.getTripId());
-        String statusMessage = (distance <= 50.0) 
+        String statusMessage = (distance != null && distance <= 50.0) 
                 ? "Arrived at stop. Advancing sequence..." 
-                : (distance <= 500.0) ? "Approaching stop (Proximity Alert Sent)" : "En Route";
+                : (distance != null && distance <= 500.0) ? "Approaching stop (Proximity Alert Sent)" : "En Route";
+
         return new TelemetryResponseDto(
             nextStopName,
             distance,
@@ -124,5 +126,4 @@ public class DriverServiceImpl implements DriverService {
             statusMessage
         );
     }
-
 }

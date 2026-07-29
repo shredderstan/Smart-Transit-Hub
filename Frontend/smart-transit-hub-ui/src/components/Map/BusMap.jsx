@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Navigation, MapPin, Radio, ShieldCheck } from 'lucide-react';
+import { Navigation, Radio } from 'lucide-react';
 
 export default function BusMap({ busLocation, routeStops, activeBusNumber, height = '450px' }) {
   const mapContainerRef = useRef(null);
@@ -14,36 +14,41 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    if (!mapInstanceRef.current) {
-      // Default initial view: San Francisco Bay Area (or center of stops)
-      const defaultCenter = [37.7849, -122.4100];
-      const map = L.map(mapContainerRef.current, {
+    let map = mapInstanceRef.current;
+    if (!map) {
+      const defaultCenter = [18.5204, 73.8567]; // Pune / India default coordinates
+      map = L.map(mapContainerRef.current, {
         center: defaultCenter,
         zoom: 13,
         zoomControl: false
       });
 
-      // Add clean OpenStreetMap tiles
+      // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
       }).addTo(map);
 
-      // Add Zoom Control at bottom right
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
       mapInstanceRef.current = map;
       setTimeout(() => {
         map.invalidateSize();
-      }, 200);
+      }, 250);
     }
 
     return () => {
-      // Cleanup on unmount if needed
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        busMarkerRef.current = null;
+        stopMarkersRef.current = [];
+        polylineRef.current = null;
+      }
     };
   }, []);
 
-  // Update Route Polylines and Stop Markers
+  // Update Route Polylines (following actual roads via OSRM) and Stop Markers
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !routeStops || routeStops.length === 0) return;
@@ -57,17 +62,43 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
       map.removeLayer(polylineRef.current);
     }
 
-    const latLngs = routeStops.map(s => [s.latitude, s.longitude]);
+    const simpleLatLngs = routeStops.map(s => [s.latitude, s.longitude]);
 
-    // Draw yellow/amber route polyline
-    const polyline = L.polyline(latLngs, {
-      color: '#f59e0b',
-      weight: 5,
-      opacity: 0.8,
-      lineCap: 'round',
-      lineJoin: 'round'
-    }).addTo(map);
-    polylineRef.current = polyline;
+    // Function to draw polyline with points
+    const drawPolyline = (coords) => {
+      if (polylineRef.current) {
+        map.removeLayer(polylineRef.current);
+      }
+      const polyline = L.polyline(coords, {
+        color: '#f59e0b',
+        weight: 6,
+        opacity: 0.85,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+      polylineRef.current = polyline;
+
+      if (!busLocation) {
+        map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+      }
+    };
+
+    // Draw initial polyline
+    drawPolyline(simpleLatLngs);
+
+    // Fetch actual geographical road polyline from OpenStreetMap OSRM
+    if (routeStops.length >= 2) {
+      const coordString = routeStops.map(s => `${s.longitude},${s.latitude}`).join(';');
+      fetch(`https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.routes && data.routes[0]?.geometry?.coordinates) {
+            const roadCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+            drawPolyline(roadCoords);
+          }
+        })
+        .catch(err => console.warn('OSRM road polyline fallback', err));
+    }
 
     // Add Stop Pins
     routeStops.forEach((stop, index) => {
@@ -99,10 +130,6 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
       stopMarkersRef.current.push(marker);
     });
 
-    // Fit Map to Route Bounds if bus is not active yet
-    if (!busLocation && latLngs.length > 0) {
-      map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
-    }
   }, [routeStops]);
 
   // Update Animated Bus Marker & Pan Location
@@ -134,7 +161,6 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
     });
 
     if (!busMarkerRef.current) {
-      // Create new bus marker
       const marker = L.marker(busLatLng, { icon: busIcon, zIndexOffset: 1000 })
         .addTo(map)
         .bindPopup(`
@@ -149,9 +175,8 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
           </div>
         `);
       busMarkerRef.current = marker;
-      map.panTo(busLatLng);
+      map.setView(busLatLng, 15, { animate: true });
     } else {
-      // Smoothly update location
       busMarkerRef.current.setLatLng(busLatLng);
       busMarkerRef.current.setIcon(busIcon);
       map.panTo(busLatLng, { animate: true, duration: 0.8 });
@@ -164,7 +189,7 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
     if (busLocation && busLocation.latitude) {
       map.setView([busLocation.latitude, busLocation.longitude], 15);
     } else if (routeStops && routeStops.length > 0 && polylineRef.current) {
-      map.fitBounds(polylineRef.current.getBounds(), { padding: [40, 40] });
+      map.fitBounds(polylineRef.current.getBounds(), { padding: [50, 50] });
     }
   };
 
@@ -173,7 +198,7 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
       {/* Map Container */}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%', borderRadius: 'var(--radius-lg)' }} />
 
-      {/* Recenter / Control Floating Panel */}
+      {/* Recenter Control Button */}
       <div style={{
         position: 'absolute',
         top: '12px',
@@ -192,7 +217,7 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
         </button>
       </div>
 
-      {/* Status Badge Overlay */}
+      {/* Status Overlay */}
       <div style={{
         position: 'absolute',
         bottom: '16px',

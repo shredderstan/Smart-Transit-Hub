@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, FastForward, Zap, Radio } from 'lucide-react';
-import { generateRoutePath } from '../../utils/routeUtils';
+import { fetchRealRoadRoutePath } from '../../utils/routeUtils';
 import { driverAPI } from '../../api/client';
 
 export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', tripId, onLocationUpdate }) {
@@ -9,25 +9,52 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
   const [currentIndex, setCurrentIndex] = useState(0);
   const [pathPoints, setPathPoints] = useState([]);
   const [telemetryState, setTelemetryState] = useState(null);
+  const [isRouting, setIsRouting] = useState(false);
   const timerRef = useRef(null);
 
-  // Generate path points whenever stops change
+  // Helper to stream telemetry to backend & parent callback
+  const sendTelemetryPacket = (point, speedValue = 0) => {
+    if (!point || !tripId) return;
+    const locationData = {
+      tripId: tripId,
+      busNumber: busNumber,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      speed: speedValue,
+      nextStopName: point.nextStopName,
+      nextStopId: point.nextStopId,
+      stopIndex: point.stopIndex || 1,
+    };
+
+    driverAPI.streamTelemetry(locationData)
+      .then((resp) => {
+        setTelemetryState(resp);
+        onLocationUpdate && onLocationUpdate({
+          ...locationData,
+          distanceToNextStop: resp?.distanceToNextStop,
+        });
+      })
+      .catch((err) => {
+        console.error('Telemetry stream error', err);
+        onLocationUpdate && onLocationUpdate(locationData);
+      });
+  };
+
+  // Generate real geographical road path points whenever stops change
   useEffect(() => {
     if (routeStops && routeStops.length > 0) {
-      const generated = generateRoutePath(routeStops);
-      setPathPoints(generated);
-      setCurrentIndex(0);
-      if (generated.length > 0) {
-        onLocationUpdate && onLocationUpdate({
-          latitude: generated[0].latitude,
-          longitude: generated[0].longitude,
-          speed: 0,
-          nextStopName: generated[0].nextStopName,
-          nextStopId: generated[0].nextStopId,
-        });
-      }
+      setIsRouting(true);
+      fetchRealRoadRoutePath(routeStops)
+        .then((generated) => {
+          setPathPoints(generated);
+          setCurrentIndex(0);
+          if (generated.length > 0) {
+            sendTelemetryPacket(generated[0], 0);
+          }
+        })
+        .finally(() => setIsRouting(false));
     }
-  }, [routeStops]);
+  }, [routeStops, tripId, busNumber]);
 
   // Simulation loop
   useEffect(() => {
@@ -36,40 +63,18 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
       return;
     }
 
-    const intervalMs = Math.max(100, 1500 / speedMultiplier);
+    const intervalMs = Math.max(80, 1200 / speedMultiplier);
 
     timerRef.current = setInterval(async () => {
       setCurrentIndex((prevIdx) => {
         const nextIdx = (prevIdx + 1) % pathPoints.length;
         const currentPoint = pathPoints[nextIdx];
 
-        // Simulated speed with slight variation
-        const baseSpeed = (Math.sin(nextIdx / 2) * 10) + 38; // ~28 to 48 km/h
+        // Simulated speed following realistic acceleration and turns
+        const baseSpeed = (Math.sin(nextIdx / 3) * 12) + 38; // ~26 to 50 km/h
         const currentSpeed = nextIdx === pathPoints.length - 1 ? 0 : baseSpeed * Math.min(speedMultiplier, 2);
 
-        const locationData = {
-          tripId: tripId,
-          busNumber: busNumber,
-          latitude: currentPoint.latitude,
-          longitude: currentPoint.longitude,
-          speed: currentSpeed,
-          nextStopName: currentPoint.nextStopName,
-          nextStopId: currentPoint.nextStopId,
-          stopIndex: currentPoint.stopIndex,
-        };
-
-        // Stream telemetry to backend
-        driverAPI.streamTelemetry(locationData)
-          .then((resp) => {
-            setTelemetryState(resp);
-          })
-          .catch((err) => console.error('Telemetry stream error', err));
-
-        // Notify parent component
-        onLocationUpdate && onLocationUpdate({
-          ...locationData,
-          distanceToNextStop: telemetryState?.distanceToNextStop,
-        });
+        sendTelemetryPacket(currentPoint, currentSpeed);
 
         // Auto-pause at end of route
         if (nextIdx === pathPoints.length - 1) {
@@ -89,14 +94,7 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
     const newIdx = parseInt(e.target.value, 10);
     setCurrentIndex(newIdx);
     if (pathPoints[newIdx]) {
-      const p = pathPoints[newIdx];
-      onLocationUpdate && onLocationUpdate({
-        latitude: p.latitude,
-        longitude: p.longitude,
-        speed: isPlaying ? 35 : 0,
-        nextStopName: p.nextStopName,
-        nextStopId: p.nextStopId,
-      });
+      sendTelemetryPacket(pathPoints[newIdx], isPlaying ? 35 : 0);
     }
   };
 
@@ -104,14 +102,7 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
     setIsPlaying(false);
     setCurrentIndex(0);
     if (pathPoints[0]) {
-      const p = pathPoints[0];
-      onLocationUpdate && onLocationUpdate({
-        latitude: p.latitude,
-        longitude: p.longitude,
-        speed: 0,
-        nextStopName: p.nextStopName,
-        nextStopId: p.nextStopId,
-      });
+      sendTelemetryPacket(pathPoints[0], 0);
     }
   };
 
@@ -125,12 +116,12 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Zap size={18} style={{ color: 'var(--primary-yellow)' }} />
           <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            Route Movement Simulator
+            OpenStreetMap Geographical Simulator
           </h3>
         </div>
         <span className="badge badge-yellow">
           <Radio size={12} className={isPlaying ? 'animate-pulse' : ''} />
-          {isPlaying ? ' STREAMING' : ' PAUSED'}
+          {isRouting ? ' CALCULATING ROADS...' : isPlaying ? ' STREAMING' : ' PAUSED'}
         </span>
       </div>
 
@@ -140,6 +131,7 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
           onClick={() => setIsPlaying(!isPlaying)}
           className={`btn ${isPlaying ? 'btn-secondary' : 'btn-primary'}`}
           style={{ minWidth: '130px' }}
+          disabled={isRouting || pathPoints.length === 0}
         >
           {isPlaying ? <><Pause size={16} /> Pause</> : <><Play size={16} /> Start Simulation</>}
         </button>
@@ -175,8 +167,8 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
       {/* Progress Slider */}
       <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>
-          <span>Route Progress: {progressPercent}%</span>
-          <span>{currentPoint ? `Next: ${currentPoint.nextStopName}` : 'Preparing route...'}</span>
+          <span>Road Navigation Progress: {progressPercent}%</span>
+          <span>{currentPoint ? `Next: ${currentPoint.nextStopName}` : 'Computing geographical roads...'}</span>
         </div>
         <input
           type="range"

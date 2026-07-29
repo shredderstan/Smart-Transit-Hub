@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Bus, Route, GraduationCap, Plus, Trash2, MapPin } from 'lucide-react';
+import { Users, Bus, Route, GraduationCap, Plus, Trash2, MapPin, Search, Radio } from 'lucide-react';
 import { adminAPI } from '../api/client';
+import PlaceSearchInput from '../components/Places/PlaceSearchInput';
+import StopPickerMap from '../components/Map/StopPickerMap';
+import BusMap from '../components/Map/BusMap';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('users');
+  const [previewRouteId, setPreviewRouteId] = useState(null);
+
+  // Live Fleet Tracking state for Admin
+  const [activeTrips, setActiveTrips] = useState([]);
+  const [selectedAdminTrip, setSelectedAdminTrip] = useState(null);
+  const [adminBusLocation, setAdminBusLocation] = useState(null);
+  const [adminRouteStops, setAdminRouteStops] = useState([]);
 
   // Data state
   const [users, setUsers] = useState([]);
@@ -47,6 +57,7 @@ export default function AdminDashboard() {
   const [stParentId, setStParentId] = useState('');
   const [stStopId, setStStopId] = useState('');
 
+  // Load initial management data
   useEffect(() => {
     loadAllData();
   }, []);
@@ -61,6 +72,7 @@ export default function AdminDashboard() {
         adminAPI.getRoutes(),
         adminAPI.getStudents(),
       ]);
+
       setUsers(uData);
       setBuses(bData);
 
@@ -84,6 +96,70 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
+
+  // Poll active trips when Admin switches to Live Tracking tab
+  useEffect(() => {
+    if (activeTab === 'tracking') {
+      const fetchActive = async () => {
+        try {
+          const trips = await adminAPI.getActiveTrips();
+          setActiveTrips(trips || []);
+          if (trips && trips.length > 0) {
+            setSelectedAdminTrip((prev) => {
+              if (!prev) return trips[0];
+              const match = trips.find((t) => t.tripId === prev.tripId);
+              return match || trips[0];
+            });
+          } else {
+            setSelectedAdminTrip(null);
+            setAdminBusLocation(null);
+          }
+        } catch (e) {
+          console.warn('Active trips poll error', e);
+        }
+      };
+      fetchActive();
+      const timer = setInterval(fetchActive, 3000);
+      return () => clearInterval(timer);
+    }
+  }, [activeTab]);
+
+  // Load route stops ONCE when selected trip's routeId changes
+  useEffect(() => {
+    if (activeTab === 'tracking' && selectedAdminTrip?.routeId) {
+      adminAPI.getStops(selectedAdminTrip.routeId)
+        .then((stops) => setAdminRouteStops(stops || []))
+        .catch((e) => console.warn('Could not load admin route stops', e));
+    } else {
+      setAdminRouteStops([]);
+    }
+  }, [activeTab, selectedAdminTrip?.routeId]);
+
+  // Poll live coordinates every 2 seconds for selected admin trip
+  useEffect(() => {
+    if (activeTab === 'tracking' && selectedAdminTrip?.tripId) {
+      const fetchLive = async () => {
+        try {
+          const latest = await adminAPI.getLatestTripData(selectedAdminTrip.tripId);
+          if (latest && latest.latitude !== undefined && latest.longitude !== undefined && latest.latitude !== null && latest.longitude !== null) {
+            setAdminBusLocation({
+              latitude: latest.latitude,
+              longitude: latest.longitude,
+              speed: latest.speed,
+              nextStopName: latest.nextStopName,
+              nextStopId: latest.nextStopId,
+              distanceToNextStop: latest.distanceToNextStop,
+            });
+          }
+        } catch (e) {
+          console.warn('Admin trip telemetry error', e);
+        }
+      };
+      fetchLive();
+      const timer = setInterval(fetchLive, 2000);
+      return () => clearInterval(timer);
+    }
+  }, [activeTab, selectedAdminTrip?.tripId]);
 
   const resetModal = () => {
     setShowModal(false);
@@ -313,6 +389,7 @@ export default function AdminDashboard() {
             { id: 'users', label: 'Users', icon: Users },
             { id: 'buses', label: 'Buses Fleet', icon: Bus },
             { id: 'routes', label: 'Routes & Stops', icon: Route },
+            { id: 'tracking', label: 'Live Fleet Map', icon: Radio },
             { id: 'students', label: 'Students', icon: GraduationCap },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -426,7 +503,10 @@ export default function AdminDashboard() {
         {activeTab === 'routes' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 800 }}>Routes &amp; Stop Geofencing</h3>
+              <div>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 800 }}>Routes &amp; Stop Geofencing</h3>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Click a route to view its OpenStreetMap path and stop markers</p>
+              </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={() => { setModalType('stop'); setShowModal(true); }} className="btn btn-secondary btn-sm">
                   <MapPin size={16} /> Add Stop
@@ -436,33 +516,149 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-              {routes.map((r) => (
-                <div key={r.id} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1rem', background: 'var(--bg-page)' }}>
-                  <h4 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-                    {r.routeName}
-                  </h4>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                    Route ID: #{r.id} &bull; Stops: {r.stops ? r.stops.length : 0}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {r.stops && r.stops.map((s, idx) => (
-                      <div key={s.id} style={{ padding: '6px 10px', background: '#ffffff', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.8125rem', display: 'flex', justifyContent: 'space-between' }}>
-                        <span><strong>Stop {idx + 1}:</strong> {s.stopName}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{s.latitude?.toFixed(4)}, {s.longitude?.toFixed(4)}</span>
+
+            <div style={{ display: 'grid', gridTemplateColumns: routes.length > 0 ? '1fr 1fr' : '1fr', gap: '1.25rem' }}>
+              {/* Route List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {routes.map((r) => {
+                  const isSelected = previewRouteId === r.id || (!previewRouteId && routes[0]?.id === r.id);
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => setPreviewRouteId(r.id)}
+                      style={{
+                        border: isSelected ? '2px solid var(--primary-yellow)' : '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '1rem',
+                        background: isSelected ? 'var(--yellow-light)' : 'var(--bg-page)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                          {r.routeName}
+                        </h4>
+                        <span className="badge badge-yellow">Route #{r.id}</span>
                       </div>
-                    ))}
-                  </div>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                        Total Geofenced Stops: {r.stops ? r.stops.length : 0}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {r.stops && r.stops.map((s, idx) => (
+                          <div key={s.id} style={{ padding: '6px 10px', background: '#ffffff', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.8125rem', display: 'flex', justifyContent: 'space-between' }}>
+                            <span><strong>Stop {idx + 1}:</strong> {s.stopName}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{s.latitude?.toFixed(4)}, {s.longitude?.toFixed(4)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {routes.length === 0 && !loading && (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No routes configured yet. Create a route to start adding stops!</div>
+                )}
+              </div>
+
+              {/* OpenStreetMap Route Visualizer */}
+              {routes.length > 0 && (
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1rem', background: '#ffffff' }}>
+                  <h4 style={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={16} style={{ color: 'var(--primary-yellow)' }} />
+                    OpenStreetMap Route Map: {routes.find(r => r.id === (previewRouteId || routes[0]?.id))?.routeName}
+                  </h4>
+                  <BusMap
+                    routeStops={routes.find(r => r.id === (previewRouteId || routes[0]?.id))?.stops || []}
+                    activeBusNumber="ROUTE-PREVIEW"
+                    height="420px"
+                  />
                 </div>
-              ))}
-              {routes.length === 0 && !loading && (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No routes configured.</div>
               )}
             </div>
           </div>
         )}
 
-        {/* Tab 4: Students */}
+        {/* Tab 4: Live Fleet Map (Admin) */}
+        {activeTab === 'tracking' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 800 }}>Live Fleet Tracking Map</h3>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Real-time OpenStreetMap tracking for all active system trips</p>
+              </div>
+              {activeTrips.length > 0 && (
+                <span className="badge badge-green">
+                  <Radio size={12} className="animate-pulse" /> {activeTrips.length} ACTIVE {activeTrips.length === 1 ? 'BUS' : 'BUSES'} STREAMING
+                </span>
+              )}
+            </div>
+
+            {activeTrips.length === 0 ? (
+              <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-page)', borderRadius: 'var(--radius-md)' }}>
+                <Radio size={32} style={{ color: 'var(--primary-yellow)', margin: '0 auto 12px auto' }} />
+                <h4 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-main)' }}>No Active Bus Trips</h4>
+                <p style={{ fontSize: '0.875rem', marginTop: '4px' }}>When a driver initializes a trip, live tracking will automatically connect to OpenStreetMap here.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.25rem' }}>
+                {/* Active Bus Selector */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-muted)' }}>Select Active Vehicle:</label>
+                  {activeTrips.map((t) => {
+                    const isSelected = selectedAdminTrip?.tripId === t.tripId;
+                    return (
+                      <div
+                        key={t.tripId}
+                        onClick={() => setSelectedAdminTrip(t)}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: 'var(--radius-md)',
+                          border: isSelected ? '2px solid var(--primary-yellow)' : '1px solid var(--border-color)',
+                          background: isSelected ? 'var(--yellow-light)' : '#ffffff',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--text-main)' }}>{t.busNumber}</span>
+                          <span className="badge badge-yellow">Trip #{t.tripId}</span>
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          Route: <strong>{t.routeName}</strong> &bull; Driver: {t.driverName}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* OpenStreetMap Vehicle Tracker */}
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1rem', background: '#ffffff' }}>
+                  {selectedAdminTrip && (
+                    <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                        Live Location: {selectedAdminTrip.busNumber} ({selectedAdminTrip.routeName})
+                      </h4>
+                      {adminBusLocation && (
+                        <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--yellow-hover)' }}>
+                          Speed: {Math.round(adminBusLocation.speed || 0)} km/h &bull; Next: {adminBusLocation.nextStopName || 'En Route'}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <BusMap
+                    busLocation={adminBusLocation}
+                    routeStops={adminRouteStops}
+                    activeBusNumber={selectedAdminTrip?.busNumber || 'BUS'}
+                    height="460px"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+
+        {/* Tab 5: Students */}
         {activeTab === 'students' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -609,10 +805,27 @@ export default function AdminDashboard() {
                       {routes.map(r => <option key={r.id} value={r.id}>{r.routeName}</option>)}
                     </select>
                   </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Search Location (OpenSource Places API)</label>
+                    <PlaceSearchInput
+                      onSelectPlace={(place) => {
+                        setStopName(place.name);
+                        setStopLat(place.latitude.toString());
+                        setStopLng(place.longitude.toString());
+                      }}
+                      placeholder="Search (e.g. ABC Public School)..."
+                    />
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      Search any location. Selecting a result auto-fills Name, Latitude &amp; Longitude.
+                    </div>
+                  </div>
+
                   <div className="input-group">
                     <label className="input-label">Stop Name</label>
-                    <input className="input-control" value={stopName} onChange={(e) => setStopName(e.target.value)} required />
+                    <input className="input-control" value={stopName} onChange={(e) => setStopName(e.target.value)} placeholder="e.g. ABC Public School" required />
                   </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                     <div className="input-group">
                       <label className="input-label">Latitude</label>
@@ -623,7 +836,21 @@ export default function AdminDashboard() {
                       <input type="number" step="any" className="input-control" value={stopLng} onChange={(e) => setStopLng(e.target.value)} required />
                     </div>
                   </div>
-                  <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Save Stop</button>
+
+                  <div className="input-group">
+                    <label className="input-label">Pick Location on OpenStreetMap</label>
+                    <StopPickerMap
+                      latitude={stopLat}
+                      longitude={stopLng}
+                      onSelectLocation={({ latitude, longitude }) => {
+                        setStopLat(latitude.toString());
+                        setStopLng(longitude.toString());
+                      }}
+                      height="200px"
+                    />
+                  </div>
+
+                  <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '12px' }}>Save Stop</button>
                 </form>
               )}
 

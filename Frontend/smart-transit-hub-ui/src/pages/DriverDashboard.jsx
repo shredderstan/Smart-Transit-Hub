@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bus, Play, Square, Radio, Zap, AlertTriangle } from 'lucide-react';
 import BusMap from '../components/Map/BusMap';
 import TripSimulatorControls from '../components/Simulator/TripSimulatorControls';
-import { driverAPI } from '../api/client';
+import { driverAPI, parentAPI, adminAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 const DEFAULT_BUS = { busNumber: '—', plateNumber: '—', capacity: '—', routeName: '—' };
@@ -18,12 +18,28 @@ export default function DriverDashboard() {
   const [msg, setMsg] = useState('');
   const [busError, setBusError] = useState('');
 
-  // Load Driver's Assigned Bus on mount
+  // 1. Load Driver's Assigned Bus & Check for Active Trip on Mount
   useEffect(() => {
     (async () => {
       try {
         const bus = await driverAPI.getAssignedBus();
         setAssignedBus(bus);
+
+        // Check if there is an active trip running for this driver
+        const active = await driverAPI.getActiveTrip();
+        if (active && active.tripId) {
+          setCurrentTripId(active.tripId);
+          setIsTripActive(true);
+          setActiveTrip(active);
+        } else if (bus && bus.routeId) {
+          // Pre-load route stops so map renders even before initializing trip
+          try {
+            const stops = await adminAPI.getStops(bus.routeId);
+            if (Array.isArray(stops)) setRouteStops(stops);
+          } catch (e) {
+            console.warn('Could not pre-load route stops', e);
+          }
+        }
       } catch (err) {
         setBusError('Could not load assigned bus. Make sure you are assigned to a bus by an admin.');
         console.error('Failed to get assigned bus', err);
@@ -31,16 +47,45 @@ export default function DriverDashboard() {
     })();
   }, []);
 
-  // Load trip stops when a trip is active
+  // 2. Load trip stops whenever currentTripId is active
   useEffect(() => {
     if (currentTripId) {
       driverAPI.getTripStops(currentTripId)
         .then((stops) => {
-          if (Array.isArray(stops)) setRouteStops(stops);
+          if (Array.isArray(stops) && stops.length > 0) {
+            setRouteStops(stops);
+          }
         })
         .catch((err) => console.error('Failed to load trip stops', err));
     }
   }, [currentTripId]);
+
+  // 3. Poll live telemetry for active trip on Driver Dashboard
+  useEffect(() => {
+    if (isTripActive && currentTripId) {
+      const pollTelemetry = async () => {
+        try {
+          const latest = await parentAPI.getLatestTripData(currentTripId);
+          if (latest && latest.latitude !== undefined && latest.longitude !== undefined && latest.latitude !== null && latest.longitude !== null) {
+            setBusLocation({
+              latitude: latest.latitude,
+              longitude: latest.longitude,
+              speed: latest.speed,
+              nextStopName: latest.nextStopName,
+              nextStopId: latest.nextStopId,
+              distanceToNextStop: latest.distanceToNextStop,
+            });
+          }
+        } catch (e) {
+          console.warn('Driver telemetry poll error', e);
+        }
+      };
+
+      pollTelemetry();
+      const timer = setInterval(pollTelemetry, 2000);
+      return () => clearInterval(timer);
+    }
+  }, [isTripActive, currentTripId]);
 
   const handleStartTrip = async () => {
     setLoading(true);
@@ -51,6 +96,22 @@ export default function DriverDashboard() {
       setIsTripActive(true);
       setActiveTrip(resp);
       setMsg(resp.message || 'Trip started successfully.');
+
+      // Load trip stops with fallback to assigned bus route stops
+      try {
+        const stops = await driverAPI.getTripStops(resp.tripId);
+        if (Array.isArray(stops) && stops.length > 0) {
+          setRouteStops(stops);
+        } else if (assignedBus && assignedBus.routeId) {
+          const fallbackStops = await adminAPI.getStops(assignedBus.routeId);
+          if (Array.isArray(fallbackStops)) setRouteStops(fallbackStops);
+        }
+      } catch {
+        if (assignedBus && assignedBus.routeId) {
+          const fallbackStops = await adminAPI.getStops(assignedBus.routeId);
+          if (Array.isArray(fallbackStops)) setRouteStops(fallbackStops);
+        }
+      }
     } catch (err) {
       setMsg(err.response?.data?.message || 'Failed to initialize trip. Check server connection.');
     } finally {
@@ -66,7 +127,6 @@ export default function DriverDashboard() {
       setIsTripActive(false);
       setCurrentTripId(null);
       setActiveTrip(null);
-      setRouteStops([]);
       setBusLocation(null);
       setMsg('Trip terminated successfully.');
     } catch (err) {
@@ -179,7 +239,7 @@ export default function DriverDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.8125rem', padding: '12px', background: 'var(--bg-page)', borderRadius: 'var(--radius-md)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Assigned Route:</span>
-                <strong style={{ color: 'var(--text-main)' }}>{bus.routeName}</strong>
+                <strong style={{ color: 'var(--text-main)' }}>{bus.routeName || '—'}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Total Route Stops:</span>

@@ -13,4 +13,8 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     Optional<Trip> findByBusId(Long busId);
 
     boolean existsByBusIdAndStatus(Long busId, TripStatus status);
+
+    Optional<Trip> findFirstByBusIdAndStatus(Long busId, TripStatus status);
+
+    Optional<Trip> findFirstByRouteIdAndStatus(Long routeId, TripStatus status);
 }

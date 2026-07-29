@@ -27,4 +27,7 @@ public class StudentResponse {
 
     private String stopName;
 
+    private Long routeId;
+
+    private String routeName;
 }

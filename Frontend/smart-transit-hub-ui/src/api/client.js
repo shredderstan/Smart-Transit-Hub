@@ -50,6 +50,10 @@ export const driverAPI = {
     const res = await api.get('/driver/assigned-bus');
     return res.data;
   },
+  getActiveTrip: async () => {
+    const res = await api.get('/driver/active-trip');
+    return res.data;
+  },
   initializeTrip: async () => {
     const res = await api.post('/driver/trips/initialize');
     return res.data;
@@ -73,8 +77,20 @@ export const parentAPI = {
     const res = await api.get('/parent/student/profile');
     return res.data;
   },
+  getActiveTrip: async () => {
+    const res = await api.get('/parent/active-trip');
+    return res.data;
+  },
   getLatestTripData: async (tripId) => {
     const res = await api.get(`/parent/trips/${tripId}/latest`);
+    return res.data;
+  },
+  getTripStops: async (tripId) => {
+    const res = await api.get(`/parent/trips/${tripId}/stops`);
+    return res.data;
+  },
+  getRouteStops: async (routeId) => {
+    const res = await api.get(`/parent/routes/${routeId}/stops`);
     return res.data;
   },
 };
@@ -135,6 +151,18 @@ export const adminAPI = {
   deleteStudent: async (id) => {
     await api.delete(`/admin/students/${id}`);
     return true;
+  },
+  searchPlaces: async (query) => {
+    const res = await api.get('/admin/places/search', { params: { query } });
+    return res.data;
+  },
+  getActiveTrips: async () => {
+    const res = await api.get('/admin/active-trips');
+    return res.data;
+  },
+  getLatestTripData: async (tripId) => {
+    const res = await api.get(`/admin/trips/${tripId}/latest`);
+    return res.data;
   },
 };
 
