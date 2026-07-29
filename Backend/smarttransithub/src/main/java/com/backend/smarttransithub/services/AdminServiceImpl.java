@@ -43,22 +43,31 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public List<User> getUsers(Role role) {
-
+		List<User> users;
 		if (role == null)
-			return userRepo.findAll();
+			users = userRepo.findAll();
 		else
-			return userRepo.findByRole(role);
+			users = userRepo.findByRole(role);
+
+		return users.stream()
+				.filter(u -> u.getIsActive() == null || Boolean.TRUE.equals(u.getIsActive()))
+				.toList();
 	}
 
 	@Override
 	public User createUser(UserRequest request) {
 		User user = new User();
 
-		if (!userRepo.findByUsername(request.getUsername()).isEmpty())
+		if (userRepo.existsByUsername(request.getUsername()))
 			throw new RuntimeException("Username already exists");
 
+		String pwd = request.getPassword();
+		if (pwd == null || pwd.trim().isEmpty()) {
+			throw new RuntimeException("Password is required");
+		}
+
 		user.setUsername(request.getUsername());
-		user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+		user.setPasswordHash(passwordEncoder.encode(pwd));
 		user.setFullName(request.getFullName());
 		user.setPhoneNumber(request.getPhoneNumber());
 		user.setRole(request.getRole());
@@ -69,33 +78,24 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public User updateUser(Long id, UserRequest request) {
-		
-
 		User user = userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		user.setUsername(request.getUsername());
 		user.setFullName(request.getFullName());
 		user.setPhoneNumber(request.getPhoneNumber());
-		user.setRole(request.getRole()); // this means only admin can update, should change
+		user.setRole(request.getRole());
 
-		if (request.getPassword() != null && request.getPassword() != "")
+		if (request.getPassword() != null && !request.getPassword().trim().isEmpty())
 			user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
-		// can create a different dto for update only where password can be null idk
-
 		return userRepo.save(user);
-
 	}
 
 	@Override
 	public void deleteUser(Long id) {
-
 		User user = userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
 		user.setIsActive(false);
-
 		userRepo.save(user);
-
 	}
 
 	// BUSES
@@ -117,8 +117,12 @@ public class AdminServiceImpl implements AdminService {
 		User driver = userRepo.findById(request.getDriverUserId())
 				.orElseThrow(() -> new ResourceNotFoundException("Driver not found"));
 
+		if (driver.getRole() != Role.ROLE_DRIVER) {
+			throw new RuntimeException("Selected user is not a driver");
+		}
+
 		Route route = routeRepo.findById(request.getRouteId())
-				.orElseThrow(() -> new ResourceNotFoundException("Route Not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Route not found"));
 
 		Bus bus = new Bus();
 
@@ -129,7 +133,6 @@ public class AdminServiceImpl implements AdminService {
 		bus.setRoute(route);
 
 		return busRepo.save(bus);
-
 	}
 
 	@Override
@@ -233,31 +236,33 @@ public class AdminServiceImpl implements AdminService {
 	public List<StudentResponse> getStudents() {
 		List<StudentResponse> response = new ArrayList<>();
 		List<Student> students = studentRepo.findAll();
-        for (Student student : students) {
+		for (Student student : students) {
 
-            StudentResponse dto = new StudentResponse();
+			StudentResponse dto = new StudentResponse();
 
-            dto.setId(student.getId());
-            dto.setFirstName(student.getFirstName());
-            dto.setLastName(student.getLastName());
-            dto.setRollNumber(student.getRollNumber());
+			dto.setId(student.getId());
+			dto.setFirstName(student.getFirstName());
+			dto.setLastName(student.getLastName());
+			dto.setRollNumber(student.getRollNumber());
 
-            dto.setParentId(student.getParent().getId());
-            dto.setParentName(student.getParent().getFullName());
+			if (student.getParent() != null) {
+				dto.setParentId(student.getParent().getId());
+				dto.setParentName(student.getParent().getFullName());
+			}
 
-            dto.setStopId(student.getStop().getId());
-            dto.setStopName(student.getStop().getStopName());
+			if (student.getStop() != null) {
+				dto.setStopId(student.getStop().getId());
+				dto.setStopName(student.getStop().getStopName());
+			}
 
-            response.add(dto);
-        }
-        return response;
+			response.add(dto);
+		}
+		return response;
 	}
 
 	@Override
 	public StudentResponse createStudent(StudentRequest request) {
-		
 
-        
 		User parent = userRepo.findById(request.getParentId())
 				.orElseThrow(() -> new RuntimeException("Parent not found"));
 
@@ -272,19 +277,23 @@ public class AdminServiceImpl implements AdminService {
 		student.setStop(stop);
 
 		student = studentRepo.save(student);
-		
+
 		StudentResponse response = new StudentResponse();
 
-        response.setId(student.getId());
-        response.setFirstName(student.getFirstName());
-        response.setLastName(student.getLastName());
-        response.setRollNumber(student.getRollNumber());
+		response.setId(student.getId());
+		response.setFirstName(student.getFirstName());
+		response.setLastName(student.getLastName());
+		response.setRollNumber(student.getRollNumber());
 
-        response.setParentId(student.getParent().getId());
-        response.setParentName(student.getParent().getFullName());
+		if (student.getParent() != null) {
+			response.setParentId(student.getParent().getId());
+			response.setParentName(student.getParent().getFullName());
+		}
 
-        response.setStopId(student.getStop().getId());
-        response.setStopName(student.getStop().getStopName());
+		if (student.getStop() != null) {
+			response.setStopId(student.getStop().getId());
+			response.setStopName(student.getStop().getStopName());
+		}
 
 		return response;
 

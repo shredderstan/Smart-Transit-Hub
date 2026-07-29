@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -24,7 +25,7 @@ public class Bus extends BaseEntity {
 	@JoinColumn(name = "driver_user_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_bus_driver"))
 	private User driver;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "route_id", nullable = false, foreignKey = @ForeignKey(name = "fk_bus_route"))
 	private Route route;
 

@@ -63,7 +63,19 @@ export default function AdminDashboard() {
       ]);
       setUsers(uData);
       setBuses(bData);
-      setRoutes(rData);
+
+      // Fetch stops for each route so route cards can display their stops
+      const routesWithStops = await Promise.all(
+        (rData || []).map(async (route) => {
+          try {
+            const stops = await adminAPI.getStops(route.id);
+            return { ...route, stops };
+          } catch {
+            return { ...route, stops: [] };
+          }
+        })
+      );
+      setRoutes(routesWithStops);
       setStudents(stData);
     } catch (err) {
       setError('Failed to load data. Please check your connection and try again.');
@@ -91,6 +103,7 @@ export default function AdminDashboard() {
         fullName: uFullName,
         phoneNumber: uPhone,
         password: uPassword,
+        plainPassword: uPassword,
         role: uRole,
       });
       resetModal();
@@ -103,6 +116,10 @@ export default function AdminDashboard() {
   // Submit Bus
   const handleCreateBus = async (e) => {
     e.preventDefault();
+    if (!bDriverId || !bRouteId) {
+      alert('Please select both a driver and a route.');
+      return;
+    }
     try {
       await adminAPI.createBus({
         busNumber: bNumber,
@@ -133,6 +150,10 @@ export default function AdminDashboard() {
   // Submit Stop
   const handleAddStop = async (e) => {
     e.preventDefault();
+    if (!selectedRouteId) {
+      alert('Please select a route.');
+      return;
+    }
     try {
       const routeId = parseInt(selectedRouteId, 10);
       const currentStops = await adminAPI.getStops(routeId);
@@ -156,6 +177,10 @@ export default function AdminDashboard() {
   // Submit Student
   const handleCreateStudent = async (e) => {
     e.preventDefault();
+    if (!stParentId || !stStopId) {
+      alert('Please select both a parent and a stop.');
+      return;
+    }
     try {
       await adminAPI.createStudent({
         firstName: stFirstName,
@@ -540,12 +565,26 @@ export default function AdminDashboard() {
                     <input type="number" className="input-control" value={bCapacity} onChange={(e) => setBCapacity(e.target.value)} required />
                   </div>
                   <div className="input-group">
-                    <label className="input-label">Driver ID</label>
-                    <input type="number" className="input-control" value={bDriverId} onChange={(e) => setBDriverId(e.target.value)} placeholder="Driver user ID" required />
+                    <label className="input-label">Select Driver</label>
+                    <select className="input-control" value={bDriverId} onChange={(e) => setBDriverId(e.target.value)} required>
+                      <option value="">-- Select Driver --</option>
+                      {users.filter(u => u.role === 'ROLE_DRIVER').map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.fullName || u.username} (ID: #{u.id})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="input-group">
-                    <label className="input-label">Route ID</label>
-                    <input type="number" className="input-control" value={bRouteId} onChange={(e) => setBRouteId(e.target.value)} placeholder="Route ID" required />
+                    <label className="input-label">Select Route</label>
+                    <select className="input-control" value={bRouteId} onChange={(e) => setBRouteId(e.target.value)} required>
+                      <option value="">-- Select Route --</option>
+                      {routes.map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.routeName} (ID: #{r.id})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Create Bus</button>
                 </form>
@@ -603,12 +642,26 @@ export default function AdminDashboard() {
                     <input className="input-control" value={stRoll} onChange={(e) => setStRoll(e.target.value)} placeholder="e.g. STU-9901" required />
                   </div>
                   <div className="input-group">
-                    <label className="input-label">Parent User ID</label>
-                    <input type="number" className="input-control" value={stParentId} onChange={(e) => setStParentId(e.target.value)} required />
+                    <label className="input-label">Select Parent</label>
+                    <select className="input-control" value={stParentId} onChange={(e) => setStParentId(e.target.value)} required>
+                      <option value="">-- Select Parent --</option>
+                      {users.filter(u => u.role === 'ROLE_PARENT').map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.fullName || u.username} (ID: #{u.id})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="input-group">
-                    <label className="input-label">Assigned Stop ID</label>
-                    <input type="number" className="input-control" value={stStopId} onChange={(e) => setStStopId(e.target.value)} required />
+                    <label className="input-label">Select Assigned Stop</label>
+                    <select className="input-control" value={stStopId} onChange={(e) => setStStopId(e.target.value)} required>
+                      <option value="">-- Select Stop --</option>
+                      {routes.flatMap(r => (r.stops || []).map(s => (
+                        <option key={s.id} value={s.id}>
+                          {s.stopName} ({r.routeName})
+                        </option>
+                      )))}
+                    </select>
                   </div>
                   <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Register Student</button>
                 </form>

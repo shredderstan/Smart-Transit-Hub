@@ -65,17 +65,27 @@ public class ParentServiceImpl implements ParentService {
 	@Override
 	public TripDataResponse getLatestTripData(Long tripId) {
 		Map<String, String> location = redisService.getLatestLocation(tripId);
+		if (location == null || location.isEmpty() || !location.containsKey("latitude")) {
+			return null;
+		}
+
 		Double latitude = Double.parseDouble(location.get("latitude"));
 		Double longitude = Double.parseDouble(location.get("longitude"));
 		Double speed = Double.parseDouble(location.get("speed"));
-		String timestampStr = location.get("timestamp"); // e.g., "2026-07-24T04:14:00Z"
+		String timestampStr = location.get("timestamp");
 
-		// Convert back to Instant
-		Instant instant = Instant.parse(timestampStr);
-		LocalDateTime timestamp = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+		LocalDateTime timestamp = LocalDateTime.now();
+		if (timestampStr != null) {
+			try {
+				Instant instant = Instant.parse(timestampStr);
+				timestamp = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+			} catch (Exception e) {
+				// fallback to current time
+			}
+		}
 
 		Long nextStopId = redisService.getNextStopId(tripId);
-		String nextStopName = redisService.getNextStopName(nextStopId, tripId);
+		String nextStopName = nextStopId != null ? redisService.getNextStopName(nextStopId, tripId) : null;
 
 		Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new ResourceNotFoundException("trip not found"));
 		Long busId = trip.getBus().getId();

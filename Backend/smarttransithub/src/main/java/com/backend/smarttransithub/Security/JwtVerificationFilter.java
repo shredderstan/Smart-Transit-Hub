@@ -36,11 +36,18 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 
 				// using claims create authentication object
 
-				Long userId = payload.get("user_id", Long.class);
+				Object rawUserId = payload.get("user_id");
+				Long userId = null;
+				if (rawUserId instanceof Number) {
+					userId = ((Number) rawUserId).longValue();
+				}
 				String roleName = payload.get("user_role", String.class);
+				if (roleName != null && !roleName.startsWith("ROLE_")) {
+					roleName = "ROLE_" + roleName;
+				}
 				log.info("***************** user_id : " + userId + " user_role : " + roleName);
 				UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(userId, null,
-						List.of(new SimpleGrantedAuthority(roleName)));
+						roleName != null ? List.of(new SimpleGrantedAuthority(roleName)) : List.of());
 
 				SecurityContextHolder.getContext().setAuthentication(token);
 				System.out.println("token :" + token);

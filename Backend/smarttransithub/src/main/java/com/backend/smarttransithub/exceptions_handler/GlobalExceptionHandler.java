@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.backend.smarttransithub.dtos.response.ApiResponse;
+import com.backend.smarttransithub.exceptions.DuplicateUsernameException;
 import com.backend.smarttransithub.exceptions.ResourceNotFoundException;
 
 @RestControllerAdvice
@@ -26,12 +27,25 @@ public class GlobalExceptionHandler {
 				.body(new ApiResponse("Failed", e.getMessage()));
 	}
 
-	// handle all remaining excs - catch all
+	@ExceptionHandler({IllegalArgumentException.class, DuplicateUsernameException.class})
+	public ResponseEntity<?> handleBadRequestException(RuntimeException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST) // SC 400
+				.body(new ApiResponse("Failed", e.getMessage()));
+	}
+
+	// handle all remaining excs - catch all business/validation runtime exceptions as 400
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
-		System.out.println("in catch-all  exc");
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR) // SC 500
+		System.out.println("in catch-all exc: " + e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST) // SC 400
 				.body(new ApiResponse("Failed", e.getMessage()));
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<?> handleGenericException(Exception e) {
+		System.out.println("in generic exception: " + e.getMessage());
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR) // SC 500
+				.body(new ApiResponse("Failed", "Internal server error occurred: " + e.getMessage()));
 	}
 
 }

@@ -46,7 +46,7 @@ public class DriverServiceImpl implements DriverService {
         }
 
         // 2. Check for existing active trip
-        if (tripRepository.existsByBusIdAndStatus(assignedBus.getId(), TripStatus.IN_PROGRESS.name())) {
+        if (tripRepository.existsByBusIdAndStatus(assignedBus.getId(), TripStatus.IN_PROGRESS)) {
             throw new RuntimeException("A trip is already active for this bus");
         }
 

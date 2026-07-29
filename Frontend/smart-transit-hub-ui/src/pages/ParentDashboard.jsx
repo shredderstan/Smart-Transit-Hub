@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Bus, MapPin, Bell, Radio, AlertTriangle } from 'lucide-react';
 import BusMap from '../components/Map/BusMap';
-import { parentAPI } from '../api/client';
+import { parentAPI, driverAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export default function ParentDashboard() {
@@ -34,12 +34,25 @@ export default function ParentDashboard() {
     })();
   }, []);
 
+  // Fetch route stops when a trip is active
+  useEffect(() => {
+    const tripId = activeTrip?.tripId;
+    if (tripId) {
+      driverAPI.getTripStops(tripId)
+        .then((stops) => {
+          if (Array.isArray(stops)) setRouteStops(stops);
+        })
+        .catch((err) => console.warn('Could not load trip stops for parent map', err));
+    }
+  }, [activeTrip]);
+
   // Polling for live trip data
   useEffect(() => {
     const tripId = activeTrip?.tripId;
     if (!tripId) return;
 
-    const timer = setInterval(async () => {
+    // Immediately fetch once, then interval
+    const fetchLatest = async () => {
       try {
         const latest = await parentAPI.getLatestTripData(tripId);
         if (latest) {
@@ -56,7 +69,8 @@ export default function ParentDashboard() {
           // Generate proximity alert if bus is approaching student's stop
           if (selectedStudent && locData.nextStopName) {
             const isApproachingStudentStop =
-              locData.nextStopName.toLowerCase().includes(selectedStudent.stopName?.toLowerCase());
+              selectedStudent.stopName &&
+              locData.nextStopName.toLowerCase().includes(selectedStudent.stopName.toLowerCase());
             if (isApproachingStudentStop) {
               setAlerts((prev) => {
                 const alreadyExists = prev.some((a) => a.text.includes(selectedStudent.stopName));
@@ -77,18 +91,13 @@ export default function ParentDashboard() {
       } catch (err) {
         console.warn('Trip data poll error', err);
       }
-    }, 3000);
+    };
+
+    fetchLatest();
+    const timer = setInterval(fetchLatest, 3000);
 
     return () => clearInterval(timer);
   }, [activeTrip, selectedStudent]);
-
-  // Build route stops from selected student's stop info when backend provides it
-  useEffect(() => {
-    // routeStops come from trip data / server; initially empty until trip is active
-    if (busLocation && !routeStops.length && busLocation.nextStopName) {
-      // minimal marker for map until full route loads
-    }
-  }, [busLocation]);
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '1.5rem 1rem' }}>

@@ -120,11 +120,15 @@ public class AdminController {
         response.setLastName(student.getLastName());
         response.setRollNumber(student.getRollNumber());
 
-        response.setParentId(student.getParent().getId());
-        response.setParentName(student.getParent().getFullName());
+        if (student.getParent() != null) {
+            response.setParentId(student.getParent().getId());
+            response.setParentName(student.getParent().getFullName());
+        }
 
-        response.setStopId(student.getStop().getId());
-        response.setStopName(student.getStop().getStopName());
+        if (student.getStop() != null) {
+            response.setStopId(student.getStop().getId());
+            response.setStopName(student.getStop().getStopName());
+        }
 
         return ResponseEntity.ok(response);
     }

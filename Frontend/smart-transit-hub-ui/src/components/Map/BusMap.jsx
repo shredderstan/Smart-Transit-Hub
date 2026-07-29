@@ -33,6 +33,9 @@ export default function BusMap({ busLocation, routeStops, activeBusNumber, heigh
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
       mapInstanceRef.current = map;
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
     }
 
     return () => {

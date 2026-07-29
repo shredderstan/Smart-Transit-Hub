@@ -42,11 +42,15 @@ export default function Login() {
       // Backend returns: { userId, jwt }
       const resp = await authAPI.login({ userName, password });
       const claims = decodeJwtPayload(resp.jwt);
+      let role = claims.user_role || claims.role || '';
+      if (role && !role.startsWith('ROLE_')) {
+        role = 'ROLE_' + role;
+      }
       const userData = {
         id: resp.userId,
         username: claims.sub || '',
-        fullName: claims.sub || '',   // fullName not in JWT; falls back to username
-        role: claims.user_role || '',
+        fullName: claims.sub || '',
+        role: role,
       };
       login(userData, resp.jwt);
     } catch (err) {

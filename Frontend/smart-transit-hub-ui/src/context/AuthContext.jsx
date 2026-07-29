@@ -5,7 +5,26 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [activeTrip, setActiveTrip] = useState(null);
+  const [activeTrip, setActiveTripState] = useState(() => {
+    const saved = localStorage.getItem('activeTrip');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse activeTrip from localStorage', e);
+      }
+    }
+    return null;
+  });
+
+  const setActiveTrip = (trip) => {
+    setActiveTripState(trip);
+    if (trip) {
+      localStorage.setItem('activeTrip', JSON.stringify(trip));
+    } else {
+      localStorage.removeItem('activeTrip');
+    }
+  };
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -32,6 +51,7 @@ export const AuthProvider = ({ children }) => {
     setActiveTrip(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('activeTrip');
   };
 
   return (

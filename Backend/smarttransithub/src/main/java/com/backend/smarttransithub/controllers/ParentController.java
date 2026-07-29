@@ -29,7 +29,11 @@ public class ParentController {
 
     @GetMapping("/trips/{tripId}/latest")
     public ResponseEntity<?> getLatestTripData(@PathVariable Long tripId) {
-        return ResponseEntity.ok(parentService.getLatestTripData(tripId));
+        var data = parentService.getLatestTripData(tripId);
+        if (data == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(data);
     }
 
     @PostMapping("/notifications/register-token")
