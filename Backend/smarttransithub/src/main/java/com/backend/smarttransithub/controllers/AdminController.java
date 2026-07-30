@@ -129,11 +129,10 @@ public class AdminController {
 
     @GetMapping("/active-trips")
     public ResponseEntity<?> getActiveTrips() {
-        List<Trip> activeTrips = tripRepository.findAll().stream()
-                .filter(t -> t.getStatus() == TripStatus.IN_PROGRESS)
-                .toList();
+        List<Trip> activeTrips = tripRepository.findActiveTripsWithDetails(TripStatus.IN_PROGRESS);
 
         List<Map<String, Object>> response = new ArrayList<>();
+        
         for (Trip t : activeTrips) {
             Map<String, Object> map = new HashMap<>();
             map.put("tripId", t.getId());
