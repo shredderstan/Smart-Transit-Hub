@@ -142,3 +142,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 /.metadata/
+
+#Json 
+smarttransithub-215eb-firebase-adminsdk-fbsvc-b5921760c4.json

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Bus, Play, Square, Radio, Zap, AlertTriangle } from 'lucide-react';
-import BusMap from '../components/Map/BusMap';
+import { Play, Square, Radio, Zap, AlertTriangle } from 'lucide-react';
 import TripSimulatorControls from '../components/Simulator/TripSimulatorControls';
+import DriverBusCard from '../components/Driver/DriverBusCard';
+import DriverMapCard from '../components/Driver/DriverMapCard';
 import { driverAPI, parentAPI, adminAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import '../styles/DriverDashboard.css';
 
 const DEFAULT_BUS = { busNumber: '—', plateNumber: '—', capacity: '—', routeName: '—' };
 
@@ -139,21 +141,9 @@ export default function DriverDashboard() {
   const bus = assignedBus || DEFAULT_BUS;
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '1.5rem 1rem' }}>
+    <div className="driver-container">
       {/* Top Banner */}
-      <div style={{
-        background: '#ffffff',
-        borderRadius: 'var(--radius-lg)',
-        padding: '1.25rem 1.5rem',
-        border: '1px solid var(--border-color)',
-        marginBottom: '1.5rem',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '1rem',
-        boxShadow: 'var(--shadow-sm)'
-      }}>
+      <div className="driver-banner">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="badge badge-yellow">DRIVER CONSOLE</span>
@@ -210,49 +200,17 @@ export default function DriverDashboard() {
       )}
 
       {/* Grid Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+      <div className="driver-grid">
 
         {/* Left Column: Assigned Bus & Controls */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className="driver-left-col">
 
           {/* Assigned Bus Card */}
-          <div className="card" style={{ borderTop: '4px solid var(--primary-yellow)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
-              <div style={{
-                width: '46px', height: '46px',
-                background: 'var(--primary-yellow)', color: '#1e1b4b',
-                borderRadius: 'var(--radius-md)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <Bus size={24} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                  {bus.busNumber}
-                </h3>
-                <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-                  Plate: {bus.plateNumber} &bull; Capacity: {bus.capacity}
-                </span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.8125rem', padding: '12px', background: 'var(--bg-page)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Assigned Route:</span>
-                <strong style={{ color: 'var(--text-main)' }}>{bus.routeName || '—'}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Total Route Stops:</span>
-                <span style={{ fontWeight: 700 }}>{routeStops.length} Stops</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Active Status:</span>
-                <span className={`badge ${isTripActive ? 'badge-green' : 'badge-yellow'}`}>
-                  {isTripActive ? 'TRIP IN PROGRESS' : 'IDLE / READY'}
-                </span>
-              </div>
-            </div>
-          </div>
+          <DriverBusCard
+            bus={bus}
+            routeStopsLength={routeStops.length}
+            isTripActive={isTripActive}
+          />
 
           {/* Trip Simulator Controls */}
           {isTripActive && routeStops.length > 0 ? (
@@ -286,30 +244,12 @@ export default function DriverDashboard() {
         </div>
 
         {/* Right Column: Driver Map View */}
-        <div className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Driver Live Route Map
-              </h3>
-              <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-                Real-time bus location, route polyline, and stop markers
-              </p>
-            </div>
-            {isTripActive && (
-              <span className="badge badge-green">
-                <Radio size={12} /> STREAMING GPS
-              </span>
-            )}
-          </div>
-
-          <BusMap
-            busLocation={busLocation}
-            routeStops={routeStops}
-            activeBusNumber={bus.busNumber}
-            height="480px"
-          />
-        </div>
+        <DriverMapCard
+          busLocation={busLocation}
+          routeStops={routeStops}
+          busNumber={bus.busNumber}
+          isTripActive={isTripActive}
+        />
       </div>
     </div>
   );

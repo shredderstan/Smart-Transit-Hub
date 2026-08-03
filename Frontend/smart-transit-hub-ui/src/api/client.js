@@ -70,6 +70,14 @@ export const driverAPI = {
     const res = await api.post('/driver/telemetry/stream', telemetryDto);
     return res.data;
   },
+  registerNotificationToken: async (dto) => {
+    const res = await api.post('/driver/notifications/register-token', dto);
+    return res.data;
+  },
+  removeNotificationToken: async (dto) => {
+    const res = await api.post('/driver/notifications/remove-token', dto);
+    return res.data;
+  },
 };
 
 export const parentAPI = {
@@ -91,6 +99,14 @@ export const parentAPI = {
   },
   getRouteStops: async (routeId) => {
     const res = await api.get(`/parent/routes/${routeId}/stops`);
+    return res.data;
+  },
+  registerNotificationToken: async (dto) => {
+    const res = await api.post('/parent/notifications/register-token', dto);
+    return res.data;
+  },
+  removeNotificationToken: async (dto) => {
+    const res = await api.post('/parent/notifications/remove-token', dto);
     return res.data;
   },
 };
