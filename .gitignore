@@ -143,6 +143,52 @@ vite.config.ts.timestamp-*
 .vite/
 /.metadata/
 
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type checkers
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Linters
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
 
 # Json file 
 smarttransithub-215eb-firebase-adminsdk-fbsvc-b5921760c4.json
