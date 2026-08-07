@@ -275,6 +275,15 @@ public class RedisTrackingService {
 		}
 
 		if (!alreadyNotified) {
+			if (notificationLogRepository.existsByTripIdAndStopId(tripId, nextStopId)) {
+				try {
+					redisTemplate.opsForSet().add(notifiedKey, nextStopId.toString());
+				} catch (Exception e) {
+					// Ignore
+				}
+				return;
+			}
+
 			try {
 				redisTemplate.opsForSet().add(notifiedKey, nextStopId.toString());
 				redisTemplate.expire(notifiedKey, TRIP_KEYS_TTL);
