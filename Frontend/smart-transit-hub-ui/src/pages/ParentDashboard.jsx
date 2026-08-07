@@ -3,6 +3,7 @@ import { User, Bus, MapPin, Bell, Radio, AlertTriangle } from 'lucide-react';
 import BusMap from '../components/Map/BusMap';
 import { parentAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import Chatbot from '../components/Chatbot';
 
 export default function ParentDashboard() {
   const { activeTrip: contextActiveTrip, setActiveTrip } = useAuth();
@@ -390,6 +391,24 @@ export default function ParentDashboard() {
           </div>
         </div>
       )}
+
+      {/* Floating AI Chatbot Assistant */}
+      <Chatbot 
+        role="parent" 
+        dashboardContext={{
+          student: selectedStudent ? { name: selectedStudent.name || selectedStudent.studentName, stop: selectedStudent.stopName } : null,
+          trip: currentTrip || contextActiveTrip,
+          busLocation: busLocation ? { 
+            latitude: busLocation.latitude, 
+            longitude: busLocation.longitude, 
+            speed: `${busLocation.speed || 0} km/h`, 
+            eta: busLocation.eta, 
+            distanceToNextStop: busLocation.distanceToNextStop 
+          } : null,
+          stops: routeStops.map(s => ({ name: s.stopName || s.name, eta: s.eta, status: s.status })),
+          alerts: alerts.slice(0, 3)
+        }} 
+      />
     </div>
   );
 }
