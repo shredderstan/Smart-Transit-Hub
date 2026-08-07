@@ -97,7 +97,7 @@
 ## 📂 Project Directory Structure
 
 ```text
-BackendforAntigravity/
+Smart-Transit-Hub/
 ├── Backend/
 │   └── smarttransithub/              # Java Spring Boot Microservice
 │       ├── src/
