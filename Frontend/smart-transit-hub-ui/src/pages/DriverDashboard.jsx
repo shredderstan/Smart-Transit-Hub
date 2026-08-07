@@ -6,6 +6,7 @@ import DriverMapCard from '../components/Driver/DriverMapCard';
 import { driverAPI, parentAPI, adminAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import '../styles/DriverDashboard.css';
+import Chatbot from '../components/Chatbot';
 
 const DEFAULT_BUS = { busNumber: '—', plateNumber: '—', capacity: '—', routeName: '—' };
 
@@ -251,6 +252,23 @@ export default function DriverDashboard() {
           isTripActive={isTripActive}
         />
       </div>
+
+      {/* Floating AI Chatbot Assistant for Driver */}
+      <Chatbot 
+        role="driver" 
+        dashboardContext={{
+          assignedBus: bus,
+          tripActive: isTripActive,
+          currentTripId: currentTripId,
+          busLocation: busLocation ? { 
+            latitude: busLocation.latitude, 
+            longitude: busLocation.longitude, 
+            speed: `${busLocation.speed || 0} km/h`,
+            eta: busLocation.eta
+          } : null,
+          stops: routeStops.map(s => ({ name: s.stopName || s.name, eta: s.eta, status: s.status }))
+        }} 
+      />
     </div>
   );
 }
