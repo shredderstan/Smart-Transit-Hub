@@ -13,7 +13,7 @@ import {
   Trash2
 } from 'lucide-react';
 
-const AI_SERVICE_URL = 'http://localhost:8000/api/chat';
+const AI_SERVICE_URL = '/api/chat';
 
 export default function Chatbot({ role = 'parent', dashboardContext = {} }) {
   const [isOpen, setIsOpen] = useState(false);
