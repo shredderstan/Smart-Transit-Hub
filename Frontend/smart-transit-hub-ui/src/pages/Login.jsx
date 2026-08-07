@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { Bus, ArrowRight } from 'lucide-react';
 import { authAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { getToken } from "firebase/messaging";
+import { messaging } from "../firebase/firebase";
+import { registerNotificationToken } from "../services/notificationServices"
+
+const VAPID_KEY =
+"BJsWWJYM0u5lM93gDDtuMMgXWLcE-zpPS7xbs3eSoxars-rVfXXx72y0sGpoEnjBHYmI3FQTh3AsbVEqaib0wYw";
 
 export default function Login() {
   const { login } = useAuth();
@@ -33,6 +39,48 @@ export default function Login() {
     }
   };
 
+  const registerFCMToken = async () => {
+
+    console.log("Inside registerFCMtoken");
+
+    try {
+
+        const permission = await Notification.requestPermission();
+        console.log(permission);
+
+        if (permission !== "granted") {
+
+            console.log("Notification permission denied");
+
+            return;
+        }
+
+        const token =
+            await getToken(messaging, {
+                vapidKey: VAPID_KEY
+            });
+
+        if (!token) {
+
+            console.log("Unable to obtain FCM token");
+
+            return;
+        }
+
+        console.log("Generated Token:", token);
+
+        localStorage.setItem("fcmToken", token);
+
+        await registerNotificationToken(token);
+
+    }
+    catch (err) {
+
+        console.error("FCM Registration Error:", err);
+
+    }
+  };
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -53,6 +101,10 @@ export default function Login() {
         role: role,
       };
       login(userData, resp.jwt);
+      if(role === "ROLE_PARENT"){
+        console.log("Registering FCM...")
+        await registerFCMToken();
+}
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {

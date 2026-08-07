@@ -48,11 +48,14 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
         .then((generated) => {
           setPathPoints(generated);
           setCurrentIndex(0);
-          if (generated.length > 0) {
-            sendTelemetryPacket(generated[0], 0);
-          }
+          // if (generated.length > 0) {
+          //   sendTelemetryPacket(generated[0], 0);
+          // }
+          console.log("Generated Route:");
+          console.table(generated.map( p => ({stop: p.nextStopName, lat: p.latitude, lng: p.longitude})))
         })
         .finally(() => setIsRouting(false));
+        // 
     }
   }, [routeStops, tripId, busNumber]);
 
@@ -101,9 +104,9 @@ export default function TripSimulatorControls({ routeStops, busNumber = 'BUS', t
   const handleReset = () => {
     setIsPlaying(false);
     setCurrentIndex(0);
-    if (pathPoints[0]) {
-      sendTelemetryPacket(pathPoints[0], 0);
-    }
+    // if (pathPoints[0]) {
+    //   sendTelemetryPacket(pathPoints[0], 0);
+    // }
   };
 
   const progressPercent = pathPoints.length > 0 ? Math.round(((currentIndex + 1) / pathPoints.length) * 100) : 0;

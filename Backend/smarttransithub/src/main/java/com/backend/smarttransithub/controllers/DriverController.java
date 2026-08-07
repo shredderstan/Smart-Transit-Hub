@@ -71,16 +71,16 @@ public class DriverController {
         }
         return ResponseEntity.ok(responseListDto);
     }
-    @PostMapping("/notifications/register-token")
-    public ResponseEntity<?> registerNotificationToken(@AuthenticationPrincipal Long userId,
-            @RequestBody NotificationTokenDto notificationTokenDto) {
-        return ResponseEntity.ok(driverService.registerNotificationToken(userId, notificationTokenDto));
-    }
-
-    @PostMapping("/notifications/remove-token")
-    public ResponseEntity<?> removeNotificationToken(@AuthenticationPrincipal Long userId, @RequestBody NotificationTokenDto notificationTokenDto) {
-        return ResponseEntity.ok(driverService.removeNotificationToken(userId, notificationTokenDto));
-    }
+//    @PostMapping("/notifications/register-token")
+//    public ResponseEntity<?> registerNotificationToken(@AuthenticationPrincipal Long userId,
+//            @RequestBody NotificationTokenDto notificationTokenDto) {
+//        return ResponseEntity.ok(driverService.registerNotificationToken(userId, notificationTokenDto));
+//    }
+//
+//    @PostMapping("/notifications/remove-token")
+//    public ResponseEntity<?> removeNotificationToken(@AuthenticationPrincipal Long userId, @RequestBody NotificationTokenDto notificationTokenDto) {
+//        return ResponseEntity.ok(driverService.removeNotificationToken(userId, notificationTokenDto));
+//    }
 
     @PostMapping("/telemetry/stream")
     public ResponseEntity<?> streamTelemetryData(@RequestBody TelemetryDataDto telemetryDataDto) {

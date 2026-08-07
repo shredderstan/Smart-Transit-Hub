@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "dgSpecHash": "s0rxYKuHYwg=",
+  "success": true,
+  "projectFilePath": "C:\\Project\\Smart-Transit-Hub-main\\NotificationService\\NotificationService.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\kaust\\.nuget\\packages\\firebaseadmin\\3.6.0\\firebaseadmin.3.6.0.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\google.api.gax\\4.13.1\\google.api.gax.4.13.1.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\google.api.gax.rest\\4.13.1\\google.api.gax.rest.4.13.1.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\google.apis\\1.75.0\\google.apis.1.75.0.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\google.apis.auth\\1.75.0\\google.apis.auth.1.75.0.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\google.apis.core\\1.75.0\\google.apis.core.1.75.0.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.10\\microsoft.aspnetcore.openapi.10.0.10.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\microsoft.openapi\\2.11.0\\microsoft.openapi.2.11.0.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.23.0\\microsoft.visualstudio.azure.containers.tools.targets.1.23.0.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\system.codedom\\7.0.0\\system.codedom.7.0.0.nupkg.sha512",
+    "C:\\Users\\kaust\\.nuget\\packages\\system.management\\7.0.2\\system.management.7.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}

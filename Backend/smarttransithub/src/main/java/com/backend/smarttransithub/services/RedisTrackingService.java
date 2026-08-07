@@ -35,7 +35,8 @@ import lombok.RequiredArgsConstructor;
 public class RedisTrackingService {
 
 	private final RedisTemplate<String, String> redisTemplate;
-	private final FcmService fcmService;
+	// private final FcmService fcmService;
+	private final NotificationClient notificationClient;
 	private final UserDeviceRepository userDeviceRepository;
 	private final InAppAlertRepository inAppAlertsRepository;
 	private final StudentRepository studentRepository;
@@ -89,10 +90,10 @@ public class RedisTrackingService {
 			System.err.println("Redis unavailable during initializeTripTracking. Using in-memory fallback: " + e.getMessage());
 		}
 
-		if (!stops.isEmpty()) {
-			Stop firstStop = stops.get(0);
-			updateBusLocation(tripId, firstStop.getLatitude(), firstStop.getLongitude(), 0.0);
-		}
+//		if (!stops.isEmpty()) {
+//			Stop firstStop = stops.get(0);
+//			updateBusLocation(tripId, firstStop.getLatitude(), firstStop.getLongitude(), 0.0);
+//		}
 	}
 
 	/**
@@ -187,6 +188,7 @@ public class RedisTrackingService {
 	 * 3. Check Geofence & Proximity (Redis primary with Haversine distance fallback).
 	 */
 	public Double checkGeofence(Long tripId, String busNumber) {
+		System.out.println("checkGeofence() called");
 		Long nextStopId = getNextStopId(tripId);
 		Long routeId = getRouteIdForTrip(tripId);
 
@@ -195,6 +197,12 @@ public class RedisTrackingService {
 		}
 
 		Map<String, String> busLocation = getLatestLocation(tripId);
+		double speed = Double.parseDouble(busLocation.getOrDefault("speed","0"));
+
+		if(speed <= 0){
+		    return null;
+		}
+		
 		if (busLocation == null || busLocation.isEmpty() || !busLocation.containsKey("latitude")) {
 			return null;
 		}
@@ -232,6 +240,12 @@ public class RedisTrackingService {
 		}
 
 		if (distance == null) return null;
+		
+		System.out.println("=================================");
+		System.out.println("Trip      : " + tripId);
+		System.out.println("Next Stop : " + nextStopId);
+		System.out.println("Distance  : " + distance);
+		System.out.println("=================================");
 
 		// Trigger notifications if within 500m geofence
 		if (distance <= 500.0) {
@@ -247,7 +261,8 @@ public class RedisTrackingService {
 				memoryNextStopIndexes.put(tripId, memoryNextStopIndexes.getOrDefault(tripId, 0) + 1);
 			}
 		}
-
+		
+		System.out.println("Distance = " + distance);
 		return distance;
 	}
 
@@ -270,6 +285,11 @@ public class RedisTrackingService {
 		try {
 			Boolean check = redisTemplate.opsForSet().isMember(notifiedKey, nextStopId.toString());
 			alreadyNotified = Boolean.TRUE.equals(check);
+			System.out.println("=========================");
+			System.out.println("Current Stop : " + nextStopId);
+			System.out.println("Distance     : " + distance);
+			System.out.println("Already Sent : " + alreadyNotified);
+			System.out.println("=========================");
 		} catch (Exception e) {
 			System.err.println("Redis notified set check fallback: " + e.getMessage());
 		}
@@ -308,7 +328,12 @@ public class RedisTrackingService {
 
 				List<UserDevice> devices = userDeviceRepository.findByUserId(parent.getId());
 				for (UserDevice device : devices) {
-					fcmService.sendNotification(device.getFcmToken(), "Bus Approaching!", message);
+					// fcmService.sendNotification(device.getFcmToken(), "Bus Approaching!", message);
+					notificationClient.sendNotification(
+						    device.getFcmToken(),
+						    "Bus Approaching!",
+						    message
+						);
 				}
 			}
 		}

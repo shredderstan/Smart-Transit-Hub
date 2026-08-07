@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { requestFcmToken } from '../firebase';
 import { driverAPI, parentAPI } from '../api/client';
+import { removeNotificationToken } from '../services/notificationServices';
 
 const AuthContext = createContext();
 
@@ -105,7 +106,9 @@ export const AuthProvider = ({ children }) => {
     }
 
     setUser(null);
+
     setToken(null);
+
     setActiveTrip(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');

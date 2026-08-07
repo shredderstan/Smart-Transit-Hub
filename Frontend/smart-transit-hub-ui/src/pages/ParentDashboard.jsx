@@ -8,6 +8,8 @@ import { parentAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import '../styles/ParentDashboard.css';
 import Chatbot from '../components/Chatbot';
+import { onMessage } from "firebase/messaging";
+import { messaging } from "../firebase/firebase";
 
 export default function ParentDashboard() {
   const { activeTrip: contextActiveTrip, setActiveTrip } = useAuth();
@@ -94,6 +96,30 @@ export default function ParentDashboard() {
   useEffect(() => { contextActiveTripRef.current = contextActiveTrip; }, [contextActiveTrip]);
 
   // 4. Poll live telemetry coordinates & proximity alerts for active trip
+  useEffect(() => {
+
+    const unsubscribe = onMessage(messaging, (payload) => {
+
+        console.log(payload);
+
+        if (Notification.permission === "granted") {
+
+            new Notification(
+                payload.notification.title,
+                {
+                    body: payload.notification.body
+                }
+            );
+
+        }
+
+    });
+
+    return unsubscribe;
+
+}, []);
+
+  // 4. Poll live vehicle telemetry continuously
   useEffect(() => {
     let timer;
     const activeTripId = currentTrip?.tripId || contextActiveTrip?.tripId;
