@@ -260,7 +260,6 @@ jwt.exp.time=7200000
 
 ### Key Backend Endpoints (`http://localhost:8080`)
 - `POST /api/auth/login` — Authenticate user and issue JWT token.
-- `POST /api/auth/register` — Register a new driver or parent account.
 - `GET /api/routes` — Retrieve active bus routes and assigned stops.
 - `POST /api/tracking/location` — Broadcast current driver GPS coordinates to Redis cache.
 - `GET /api/tracking/bus/{busId}` — Fetch current live location and ETA of a specific bus.
