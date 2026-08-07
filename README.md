@@ -241,12 +241,12 @@ HOST=0.0.0.0
 spring.application.name=smarttransithub
 
 # MySQL Database Configuration
-spring.datasource.url=jdbc:mysql://localhost:3306/project?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-spring.datasource.username=root
-spring.datasource.password=root
+spring.datasource.url=jdbc:mysql://localhost:3306/smarttransithub?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+spring.datasource.username=your_username
+spring.datasource.password=your_password
 
 # Redis Cache Configuration
-spring.data.redis.host=localhost
+spring.data.redis.host=your_redis_url / localhost
 spring.data.redis.port=6379
 
 # JWT Configuration
