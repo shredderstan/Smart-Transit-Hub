@@ -192,3 +192,6 @@ Thumbs.db
 
 # Json file 
 smarttransithub-215eb-firebase-adminsdk-fbsvc-b5921760c4.json
+# .NET build outputs
+NotificationService/bin/
+NotificationService/obj/
