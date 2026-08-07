@@ -7,12 +7,13 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![LangChain](https://img.shields.io/badge/LangChain-0.2.0-1C3C3C.svg?style=for-the-badge&logo=chainlink)](https://www.langchain.com/)
 [![Groq](https://img.shields.io/badge/Groq-Llama3-f34f29.svg?style=for-the-badge)](https://groq.com/)
+[![Firebase FCM](https://img.shields.io/badge/Firebase_FCM-Push_Alerts-FFCA28.svg?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/docs/cloud-messaging)
 [![Redis](https://img.shields.io/badge/Redis-Live_Cache-DC382D.svg?style=for-the-badge&logo=redis)](https://redis.io/)
 [![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1.svg?style=for-the-badge&logo=mysql)](https://www.mysql.com/)
 
 ---
 
-> **Smart Transit Hub** is an end-to-end, multi-tier intelligent school bus & public transit tracking ecosystem. It integrates real-time GPS telemetry, role-based dashboards (Admin, Driver, Parent), high-speed geospatial caching with Redis, and an AI-powered conversational assistant with live weather tool calling capabilities.
+> **Smart Transit Hub** is an end-to-end, multi-tier intelligent school bus & public transit tracking ecosystem. It integrates real-time GPS telemetry, role-based dashboards (Admin, Driver, Parent), high-speed geospatial caching with Redis, real-time push notifications via Firebase Cloud Messaging (FCM), and an AI-powered conversational assistant with live weather tool calling capabilities.
 
 ---
 
@@ -44,12 +45,18 @@
 ### 🚌 Driver Portal
 - **GPS Telemetry Broadcasting**: One-tap start/stop trip streaming live location coordinates to Redis & MySQL.
 - **Route Navigation & Stop Checklist**: Interactive map route display with sequential passenger pickup/drop-off tracking.
-- **Emergency Alert Trigger**: Dispatch instant emergency notifications to admins and parents.
+- **Emergency Alert Trigger**: Dispatch instant emergency notifications to admins and parents via FCM.
 
 ### 👨‍👩‍👧 Parent Portal
 - **Live Bus Tracking**: Real-time vehicle location streaming with Leaflet map visualization.
 - **ETA & Distance Estimates**: Live distance updates to destination bus stops.
+- **Push Notifications (FCM)**: Real-time mobile/browser push notifications when the bus approaches student stops or enters geofenced zones.
 - **Integrated AI Transport Assistant**: Embedded chatbot widget to inquire about bus schedules, weather conditions along the route, and trip status.
+
+### 🔔 Firebase Cloud Messaging (FCM) Integration
+- **Automated Proximity Notifications**: Instant FCM push alerts sent to parents when a bus is within a designated distance threshold of a stop.
+- **Geofence Breach Alerts**: Real-time push messages dispatched on route deviations or delayed stops.
+- **Asynchronous Delivery**: Integrated via Spring Boot `FcmService` and Google Firebase Admin SDK for reliable message dispatch.
 
 ### 🤖 AI Transport Assistant (`ai-service`)
 - **LangChain + Groq LLM**: High-speed conversational AI customized with role-specific system prompts (Parent vs Driver).
@@ -145,8 +152,12 @@ Before running the application, make sure you have the following installed:
 
 Ensure **MySQL** and **Redis** services are running locally on their default ports:
 
-- **MySQL**: Default port `3306` (Create database named `project` or let Spring Boot create it automatically).
-- **Redis**: Default port `6379`.
+1. **MySQL**: Ensure MySQL service is running on default port `3306`.
+2. **Redis**: Ensure Redis service is running on default port `6379`.
+3. **Firebase Cloud Messaging (FCM)**:
+   - Download your service account credentials JSON file from the [Firebase Console](https://console.firebase.google.com/).
+   - Place the file inside `Backend/smarttransithub/src/main/resources/` (e.g. `serviceAccountKey.json`).
+   - Configure `firebase.config.file=serviceAccountKey.json` in `application.properties`.
 
 ---
 
@@ -248,6 +259,9 @@ spring.datasource.password=your_password
 # Redis Cache Configuration
 spring.data.redis.host=your_redis_url / localhost
 spring.data.redis.port=6379
+
+# Firebase Cloud Messaging (FCM) Configuration
+firebase.config.file=serviceAccountKey.json
 
 # JWT Configuration
 jwt.secret.key=your_256_bit_secret_key_here
